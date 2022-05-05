@@ -1,0 +1,274 @@
+#!/usr/bin/env bash
+
+#
+# Variables
+#
+
+# text
+Cyan='\033[0;36m'
+Yellow='\033[1;33m'
+Red='\033[0;31m'
+Orange='\033[0;33m'
+Green='\033[0;32m'
+NC='\033[0;0m'
+EOL='\n'
+SPACER='\n\n'
+INDENT='    '
+BOLD='\033[1m'
+HAIR='\033[0m'
+ITALIC='\033[3m'
+
+REPO_URI='\e]8;;https://github.com/open-data/docker-og\e\\docker-og\e]8;;\e\\'
+DOCKER_URI='\e]8;;https://docs.docker.com/get-docker/\e\\Docker\e]8;;\e\\'
+COMPOSE_URI='\e]8;;https://docs.docker.com/compose/\e\\Docker Compose\e]8;;\e\\'
+projectID=''
+dockerComposeCommand='docker compose'
+
+function output_man {
+
+    printf "${EOL}"
+    printf "${INDENT}Usage: ${BOLD}og${HAIR} COMMAND${SPACER}"
+    printf "${INDENT}Commands:${EOL}"
+    printf "${INDENT}${INDENT}${BOLD}docker${HAIR}    Interfaces with the ${REPO_URI} repository.${SPACER}"
+    printf "${INDENT}${INDENT}          Usage: ${BOLD}og docker${HAIR} COMMAND${SPACER}"
+    printf "${INDENT}${INDENT}          Commands:${EOL}"
+    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}init${HAIR}       Initializes a new ${REPO_URI} instance into a directory with the provided PROJECT ID. The PROJECT ID must be lowercase and contain only alphanumeric characters.${SPACER}"
+    printf "${INDENT}${INDENT}          ${INDENT}           Usage: ${BOLD}og docker init${HAIR} [PROJECT ID]${SPACER}"
+    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}destroy${HAIR}    Deletes the project directory, docker images, and docker networks for the given PROJECT ID.${SPACER}"
+    printf "${INDENT}${INDENT}          ${INDENT}           Usage: ${BOLD}og docker destroy${HAIR} [PROJECT ID]${SPACER}"
+    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}help${HAIR}       Outputs the og docker manual.${SPACER}"
+    printf "${INDENT}${INDENT}${BOLD}help${HAIR}      Outputs this manual.${EOL}"
+    printf "${EOL}"
+
+}
+
+function output_docker_man {
+
+    printf "${EOL}"
+    printf "${INDENT}Usage: ${BOLD}og docker${HAIR} COMMAND${SPACER}"
+    printf "${INDENT}Commands:${EOL}"
+    printf "${INDENT}${INDENT}${BOLD}init${HAIR}       Initializes a new ${REPO_URI} instance into a directory with the provided PROJECT ID. The PROJECT ID must be lowercase and contain only alphanumeric characters.${SPACER}"
+    printf "${INDENT}${INDENT}           Usage: ${BOLD}og docker init${HAIR} [PROJECT ID]${SPACER}"
+    printf "${INDENT}${INDENT}${BOLD}destroy${HAIR}    Deletes the project directory, docker images, and docker networks for the given PROJECT ID.${SPACER}"
+    printf "${INDENT}${INDENT}           Usage: ${BOLD}og docker destroy${HAIR} [PROJECT ID]${SPACER}"
+    printf "${INDENT}${INDENT}${BOLD}help${HAIR}       Outputs this manual.${EOL}"
+    printf "${EOL}"
+
+}
+
+function output_docker_init_man {
+
+    printf "${EOL}"
+    printf "${INDENT}Usage: ${BOLD}og docker init${HAIR} [PROJECT ID]${EOL}"
+    printf "${EOL}"
+
+}
+
+function output_docker_destroy_man {
+
+    printf "${EOL}"
+    printf "${INDENT}Usage: ${BOLD}og docker destroy${HAIR} [PROJECT ID]${EOL}"
+    printf "${EOL}"
+
+}
+
+function does_docker_project_exist {
+
+    dockerProjectFlag='false'
+
+    docker network inspect og-proxy-network--$projectID >/dev/null 2>&1 || dockerProjectFlag='true'
+
+    if [[ dockerProjectFlag == "true" ]]; then
+
+        return 0
+
+    fi
+
+    return 1
+
+}
+
+function does_project_directory_exist {
+
+    if [[ -d "$(pwd)/$1" ]]; then
+
+        return 0
+
+    fi
+
+    return 1
+
+}
+
+function docker_init_command {
+
+    #TODO: fix project existing checks
+
+    if [[ $3 ]]; then
+
+        if [[ $(does_docker_project_exist $3) -ne 0 ]]; then
+
+            if [[ $(does_project_directory_exist $3) -ne 0 ]]; then
+
+                projectID=$3
+
+                #TODO: add a "-d" flag to specify a parent directory to initialize into
+                echo 'do docker-og init here...'
+        
+            else
+
+                printf "${EOL}"
+                printf "${Yellow}${INDENT}Project directory ${ITALIC}${BOLD}$(pwd)/$3${HAIR}${Yellow}${BOLD} already exist.${NC}${SPACER}"
+
+            fi
+
+        else
+
+            printf "${EOL}"
+            printf "${Yellow}${INDENT}Docker project with ID ${ITALIC}${BOLD}$3${HAIR}${Yellow}${BOLD} already exist.${NC}${SPACER}"
+
+        fi
+
+    else
+
+        printf "${EOL}"
+        printf "${Yellow}${INDENT}Please supply a PROJECT ID${NC}${EOL}"
+        output_docker_init_man
+
+    fi
+
+}
+
+function docker_destroy_command {
+
+    if [[ $3 ]]; then
+
+        if [[ $(does_docker_project_exist $3) -eq 0 ]]; then
+
+            if [[ $(does_project_directory_exist $3) -eq 0 ]]; then
+
+                projectID=$3
+
+                #TODO: confirm docker-og instance destruction
+                #TODO: remove networks (use "docker network rm og-proxy-network--$projectID; && docker network rm og-local-network--$projectIDl")
+                #TODO: remove images (use "docker image prune --filter 'label=porjectID=$projectID';")
+                #TODO: remove directory
+                echo 'do docker-og destruction here...'
+
+            else
+
+                printf "${EOL}"
+                printf "${Yellow}${INDENT}Project directory ${ITALIC}${BOLD}$(pwd)/$3${HAIR}${Yellow}${BOLD} does not exist.${NC}${SPACER}"
+
+            fi
+
+        else
+
+            printf "${EOL}"
+            printf "${Yellow}${INDENT}Docker project with ID ${ITALIC}${BOLD}$3${HAIR}${Yellow}${BOLD} does not exist.${NC}${SPACER}"
+
+        fi
+
+    else
+
+        printf "${EOL}"
+        printf "${Yellow}${INDENT}Please supply a PROJECT ID${NC}${EOL}"
+        output_docker_destroy_man
+
+    fi
+
+}
+
+function docker_command  {
+
+    if [[ -x "$(command -v docker)" ]]; then
+
+        # Gets the correct docker compose command (docker compose being the newest and docker-compose being older)
+        if [[ -x "$(command -v 'docker compose')" ]]; then
+
+            dockerComposeCommand='docker compose'
+
+        elif [[ -x "$(command -v docker-compose)" ]]; then
+
+            dockerComposeCommand='docker-compose'
+
+        else
+
+            dockerComposeCommand='false'
+
+        fi
+
+        if [[ dockerComposeCommand != "false" ]]; then
+        
+            if [[ $2 ]]; then
+
+                if [[ $2 == "init" ]]; then
+
+                    docker_init_command $@
+
+                elif [[ $2 == "destroy" ]]; then
+
+                    docker_destroy_command $@
+
+                elif [[ $2 == "help" ]]; then
+
+                    output_docker_man
+
+                else
+
+                    printf "${EOL}"
+                    printf "${Yellow}${INDENT}COMMAND ${ITALIC}${BOLD}$2${HAIR}${Yellow}${BOLD} not found${NC}${EOL}"
+                    output_docker_man
+
+                fi
+
+            else
+
+                printf "${EOL}"
+                printf "${Yellow}${INDENT}Please supply a COMMAND${NC}${EOL}"
+                output_docker_man
+
+            fi
+
+        else
+
+            printf "${EOL}"
+            printf "${Red}${INDENT}${BOLD}${COMPOSE_URI} not found. ${ITALIC}${BOLD}og docker${HAIR}${Red}${BOLD} requires ${COMPOSE_URI} to be installed and available in your ${ITALIC}${BOLD}PATH${HAIR}${Red}${BOLD} variable or via the ${ITALIC}${BOLD}docker${HAIR}${Red}${BOLD} command.${HAIR}${NC}${SPACER}"
+
+        fi
+
+    else
+
+        printf "${EOL}"
+        printf "${Red}${INDENT}${BOLD}${DOCKER_URI} not found. ${ITALIC}${BOLD}og docker${HAIR}${Red}${BOLD} requires ${DOCKER_URI} to be installed and available in your ${ITALIC}${BOLD}PATH${HAIR}${Red}${BOLD} variable.${HAIR}${NC}${SPACER}"
+
+    fi
+
+}
+
+# check for first command
+if [[ $1 ]]; then
+
+    if [[ $1 == "docker" ]]; then
+
+        docker_command $@
+
+    elif [[ $1 == "help"  ]]; then
+
+        output_man
+
+    else
+
+        printf "${EOL}"
+        printf "${Yellow}${INDENT}COMMAND ${ITALIC}${BOLD}$1${HAIR}${Yellow}${BOLD} not found${NC}${EOL}"
+        output_man
+
+    fi
+
+else
+
+    printf "${EOL}"
+    printf "${Yellow}${INDENT}Please supply a COMMAND${NC}${EOL}"
+    output_man
+
+fi
