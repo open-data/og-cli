@@ -145,10 +145,10 @@ function generate_project_hosts_file {
         sudo touch /etc/hosts.d/$1.conf
         echo "" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
         echo "127.0.0.1	open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
-        echo "127.0.0.1	registry-$1.open.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
-        echo "127.0.0.1	portal-$1.open.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
-        echo "127.0.0.1	solr-$1.open.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
-        echo "127.0.0.1	search-$1.open.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
+        echo "127.0.0.1	registry.open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
+        echo "127.0.0.1	portal.open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
+        echo "127.0.0.1	solr.open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
+        echo "127.0.0.1	search.open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
         echo "" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
         cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
 
@@ -208,14 +208,38 @@ function docker_init_command {
 
                 if [[ $confirmProjectCreation == "true" ]]; then
 
+                    # create hosts file for the project ID
                     printf "${EOL}"
                     printf "${Cyan}${INDENT}Generating new project host file ${ITALIC}${BOLD}/etc/hosts.d/$3.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${EOL}"
                     generate_project_hosts_file $3
 
-                    #TODO: confirm docker-og instance creation at $(pwd)/${projectID}
-                    #TODO: create docker networks (use "docker network create og-proxy-network--$projectID; && docker network create og-local-network--$projectIDl")
-                    #TODO: pull docker-og repo into $(pwd)/${projectID}
-                    #TODO: echo ${projectID} > .project.env
+                    # create docker networks for the project ID
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Creating docker networks for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
+                    docker network create og-proxy-network--$projectID
+                    docker network create og-local-network--$projectID
+
+                    # create directory for the project ID
+                    printf "${Cyan}${INDENT}Creating project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
+                    mkdir $(pwd)/$projectID
+
+                    # pull docker-og repo into project directory
+                    printf "${Cyan}${INDENT}Cloning ${REPO_URI} into project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
+                    git clone https://github.com/open-data/docker-og.git $(pwd)/$projectID
+                    
+                    # create .project.env file and put project ID into it
+                    printf "${Cyan}${INDENT}Creating ${ITALIC}${BOLD}.project.env${HAIR}${Cyan} file for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
+                    cd $(pwd)/$projectID
+                    touch .project.env
+                    echo "PROJECT_ID=$projectID" > .project.env
+                    
+                    # run the pre-build.sh script
+                    printf "${Cyan}${INDENT}Running ${ITALIC}${BOLD}pre-build.sh${HAIR}${Cyan} script for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
+                    chmod 775 pre-build.sh
+                    ./pre-build.sh $projectID no-interaction
+
+                    # add execution to installation script
+                    chmod 775 install-local.sh
 
                 else
 
@@ -271,15 +295,24 @@ function docker_destroy_command {
 
                 if [[ $confirmProjectCreation == "true" ]]; then
 
+                    # delete hosts file for the project ID
                     printf "${EOL}"
                     printf "${Cyan}${INDENT}Removing project host file ${ITALIC}${BOLD}/etc/hosts.d/$3.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${SPACER}"
                     delete_project_hosts_file $3
 
-                    #TODO: confirm docker-og instance destruction
-                    #TODO: remove networks (use "docker network rm og-proxy-network--$projectID; && docker network rm og-local-network--$projectIDl")
-                    #TODO: remove images (use "docker image prune --filter 'label=projectID=$projectID';")
-                    #TODO: remove directory
-                    #TODO: remove hosts file and re-generate host file (use "cat /etc/hosts.d/*.conf | sudo tee /etc/hosts")
+                    # delete docker networks for the project ID
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Removing docker networks for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
+                    docker network rm og-proxy-network--$projectID
+                    docker network rm og-local-network--$projectID
+
+                    # delete docker images for the project ID
+                    printf "${Cyan}${INDENT}Removing docker images for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
+                    docker image prune --filter "label=projectID=$projectID"
+
+                    # delete directory for the project ID
+                    printf "${Cyan}${INDENT}Removing project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
+                    rm -rf $(pwd)/$projectID
 
                 else
 
