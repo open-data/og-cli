@@ -18,9 +18,10 @@ BOLD='\033[1m'
 HAIR='\033[0m'
 ITALIC='\033[3m'
 
-REPO_URI='\e]8;;https://github.com/open-data/docker-og\e\\docker-og\e]8;;\e\\'
+REPO_URI='\e]8;;https://github.com/open-data/docker-og/\e\\Docker OG\e]8;;\e\\'
 DOCKER_URI='\e]8;;https://docs.docker.com/get-docker/\e\\Docker\e]8;;\e\\'
 COMPOSE_URI='\e]8;;https://docs.docker.com/compose/\e\\Docker Compose\e]8;;\e\\'
+GIT_URI='\e]8;;https://git-scm.com/download/\e\\Git\e]8;;\e\\'
 projectID=''
 dockerComposeCommand='docker compose'
 
@@ -74,17 +75,19 @@ function output_docker_destroy_man {
 
 function does_docker_project_exist {
 
-    dockerProjectFlag='false'
+    dockerProjectNotExist='false'
 
-    docker network inspect og-proxy-network--$projectID >/dev/null 2>&1 || dockerProjectFlag='true'
+    docker network inspect og-proxy-network--$1 >/dev/null 2>&1 || dockerProjectNotExist='true'
 
-    if [[ dockerProjectFlag == "true" ]]; then
+    if [[ $dockerProjectNotExist == "true" ]]; then
 
+        echo "false"
         return 0
 
     fi
 
-    return 1
+    echo "true"
+    return 0
 
 }
 
@@ -92,28 +95,134 @@ function does_project_directory_exist {
 
     if [[ -d "$(pwd)/$1" ]]; then
 
+        echo "true"
         return 0
 
     fi
 
-    return 1
+    echo "false"
+    return 0
+
+}
+
+function regenerate_hosts_file {
+
+    if [[ -d "/etc/hosts.d" ]]; then
+
+        if [[ -f "/etc/hosts.d/default.conf" ]]; then
+
+            cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+
+        else
+
+            sudo cp /etc/hosts /etc/hosts.d/default.conf
+            cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+
+        fi
+
+    else
+
+        sudo mkdir /etc/hosts.d
+        sudo cp /etc/hosts /etc/hosts.d/default.conf
+        cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+
+    fi
+
+}
+
+function generate_project_hosts_file {
+
+    regenerate_hosts_file
+
+    if [[ -d "/etc/hosts.d" ]]; then
+
+        if [[ -f "/etc/hosts.d/$1.conf" ]]; then
+
+            sudo rm -rf /etc/hosts.d/$1.conf
+
+        fi
+
+        sudo touch /etc/hosts.d/$1.conf
+        echo "" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
+        echo "127.0.0.1	open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
+        echo "127.0.0.1	registry-$1.open.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
+        echo "127.0.0.1	portal-$1.open.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
+        echo "127.0.0.1	solr-$1.open.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
+        echo "127.0.0.1	search-$1.open.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
+        echo "" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
+        cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+
+    fi
+
+}
+
+function delete_project_hosts_file {
+
+    regenerate_hosts_file
+
+    if [[ -d "/etc/hosts.d" ]]; then
+
+        sudo rm -rf /etc/hosts.d/$1.conf
+        cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+
+    fi
 
 }
 
 function docker_init_command {
 
-    #TODO: fix project existing checks
-
     if [[ $3 ]]; then
 
-        if [[ $(does_docker_project_exist $3) -ne 0 ]]; then
+        if [[ $3 == "default" ]]; then
 
-            if [[ $(does_project_directory_exist $3) -ne 0 ]]; then
+            printf "${EOL}"
+            printf "${Red}${INDENT}Project ID ${ITALIC}${BOLD}$3${HAIR}${Red} is a reserved ID. Abandoning docker project creation.${NC}${SPACER}"
+            return 0
+
+        fi
+
+        if [[ ! -z "${3//[_[:digit:][:lower:]]}" && ! -z "${3//[-[:digit:][:lower:]]}" ]]; then
+
+            printf "${EOL}"
+            printf "${Red}${INDENT}Provided ID ${ITALIC}${BOLD}$3${HAIR}${Red} illegal. Project IDs must be lowercase and contain only alphanumeric characters. Abandoning docker project creation.${NC}${SPACER}"
+            return 0
+
+        fi
+
+        if [[ $(does_docker_project_exist $3) == "false" ]]; then
+
+            if [[ $(does_project_directory_exist $3) == "false" ]]; then
 
                 projectID=$3
+                confirmProjectCreation='false'
 
-                #TODO: add a "-d" flag to specify a parent directory to initialize into
-                echo 'do docker-og init here...'
+                printf "${EOL}"
+                printf "${Cyan}${INDENT}Are you sure you want to create a new Docker OG project at ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} with the ID of ${ITALIC}${BOLD}${projectID}${HAIR}${Cyan}?${NC}${EOL}"
+                read -r -p $'\033[0;36m    [y/N]: \033[0;0m' response
+
+                if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+
+                    confirmProjectCreation='true'
+
+                fi
+
+                if [[ $confirmProjectCreation == "true" ]]; then
+
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Generating new project host file ${ITALIC}${BOLD}/etc/hosts.d/$3.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${EOL}"
+                    generate_project_hosts_file $3
+
+                    #TODO: confirm docker-og instance creation at $(pwd)/${projectID}
+                    #TODO: create docker networks (use "docker network create og-proxy-network--$projectID; && docker network create og-local-network--$projectIDl")
+                    #TODO: pull docker-og repo into $(pwd)/${projectID}
+                    #TODO: echo ${projectID} > .project.env
+
+                else
+
+                    printf "${EOL}"
+                    printf "${Yellow}${INDENT}Abandoning docker project creation with ID: ${ITALIC}${BOLD}$3${HAIR}${Yellow}${BOLD}${NC}${SPACER}"
+
+                fi
         
             else
 
@@ -143,17 +252,41 @@ function docker_destroy_command {
 
     if [[ $3 ]]; then
 
-        if [[ $(does_docker_project_exist $3) -eq 0 ]]; then
+        if [[ $(does_docker_project_exist $3) == "true"  ]]; then
 
-            if [[ $(does_project_directory_exist $3) -eq 0 ]]; then
+            if [[ $(does_project_directory_exist $3) == "true"  ]]; then
 
                 projectID=$3
+                confirmProjectDeletion='false'
 
-                #TODO: confirm docker-og instance destruction
-                #TODO: remove networks (use "docker network rm og-proxy-network--$projectID; && docker network rm og-local-network--$projectIDl")
-                #TODO: remove images (use "docker image prune --filter 'label=porjectID=$projectID';")
-                #TODO: remove directory
-                echo 'do docker-og destruction here...'
+                printf "${EOL}"
+                printf "${Cyan}${INDENT}Are you sure you want to delete the Docker OG project at ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} with the ID of ${ITALIC}${BOLD}${projectID}${HAIR}${Cyan}?${NC}${EOL}"
+                read -r -p $'\033[0;36m    [y/N]: \033[0;0m' response
+
+                if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+
+                    confirmProjectDeletion='true'
+
+                fi
+
+                if [[ $confirmProjectCreation == "true" ]]; then
+
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Removing project host file ${ITALIC}${BOLD}/etc/hosts.d/$3.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${SPACER}"
+                    delete_project_hosts_file $3
+
+                    #TODO: confirm docker-og instance destruction
+                    #TODO: remove networks (use "docker network rm og-proxy-network--$projectID; && docker network rm og-local-network--$projectIDl")
+                    #TODO: remove images (use "docker image prune --filter 'label=projectID=$projectID';")
+                    #TODO: remove directory
+                    #TODO: remove hosts file and re-generate host file (use "cat /etc/hosts.d/*.conf | sudo tee /etc/hosts")
+
+                else
+
+                    printf "${EOL}"
+                    printf "${Yellow}${INDENT}Abandoning docker project deletion with ID: ${ITALIC}${BOLD}$3${HAIR}${Yellow}${BOLD}${NC}${SPACER}"
+
+                fi
 
             else
 
@@ -199,25 +332,36 @@ function docker_command  {
         fi
 
         if [[ dockerComposeCommand != "false" ]]; then
+
+            if [[ -x "$(command -v git)" ]]; then
         
-            if [[ $2 ]]; then
+                if [[ $2 ]]; then
 
-                if [[ $2 == "init" ]]; then
+                    if [[ $2 == "init" ]]; then
 
-                    docker_init_command $@
+                        docker_init_command "$@"
 
-                elif [[ $2 == "destroy" ]]; then
+                    elif [[ $2 == "destroy" ]]; then
 
-                    docker_destroy_command $@
+                        docker_destroy_command "$@"
 
-                elif [[ $2 == "help" ]]; then
+                    elif [[ $2 == "help" ]]; then
 
-                    output_docker_man
+                        output_docker_man
+
+                    else
+
+                        #TODO: try to exec docker compose command
+                        printf "${EOL}"
+                        printf "${Yellow}${INDENT}COMMAND ${ITALIC}${BOLD}$2${HAIR}${Yellow}${BOLD} not found${NC}${EOL}"
+                        output_docker_man
+
+                    fi
 
                 else
 
                     printf "${EOL}"
-                    printf "${Yellow}${INDENT}COMMAND ${ITALIC}${BOLD}$2${HAIR}${Yellow}${BOLD} not found${NC}${EOL}"
+                    printf "${Yellow}${INDENT}Please supply a COMMAND${NC}${EOL}"
                     output_docker_man
 
                 fi
@@ -225,22 +369,21 @@ function docker_command  {
             else
 
                 printf "${EOL}"
-                printf "${Yellow}${INDENT}Please supply a COMMAND${NC}${EOL}"
-                output_docker_man
+                printf "${Red}${INDENT}${BOLD}${GIT_URI} not found. ${ITALIC}${BOLD}Docker OG${HAIR}${Red}${BOLD} requires ${GIT_URI} to be installed and available in your ${ITALIC}${BOLD}PATH${HAIR}${Red}${BOLD} variable.${HAIR}${NC}${SPACER}"
 
             fi
 
         else
 
             printf "${EOL}"
-            printf "${Red}${INDENT}${BOLD}${COMPOSE_URI} not found. ${ITALIC}${BOLD}og docker${HAIR}${Red}${BOLD} requires ${COMPOSE_URI} to be installed and available in your ${ITALIC}${BOLD}PATH${HAIR}${Red}${BOLD} variable or via the ${ITALIC}${BOLD}docker${HAIR}${Red}${BOLD} command.${HAIR}${NC}${SPACER}"
+            printf "${Red}${INDENT}${BOLD}${COMPOSE_URI} not found. ${ITALIC}${BOLD}Docker OG${HAIR}${Red}${BOLD} requires ${COMPOSE_URI} to be installed and available in your ${ITALIC}${BOLD}PATH${HAIR}${Red}${BOLD} variable or via the ${ITALIC}${BOLD}docker${HAIR}${Red}${BOLD} command.${HAIR}${NC}${SPACER}"
 
         fi
 
     else
 
         printf "${EOL}"
-        printf "${Red}${INDENT}${BOLD}${DOCKER_URI} not found. ${ITALIC}${BOLD}og docker${HAIR}${Red}${BOLD} requires ${DOCKER_URI} to be installed and available in your ${ITALIC}${BOLD}PATH${HAIR}${Red}${BOLD} variable.${HAIR}${NC}${SPACER}"
+        printf "${Red}${INDENT}${BOLD}${DOCKER_URI} not found. ${ITALIC}${BOLD}Docker OG${HAIR}${Red}${BOLD} requires ${DOCKER_URI} to be installed and available in your ${ITALIC}${BOLD}PATH${HAIR}${Red}${BOLD} variable.${HAIR}${NC}${SPACER}"
 
     fi
 
@@ -251,7 +394,7 @@ if [[ $1 ]]; then
 
     if [[ $1 == "docker" ]]; then
 
-        docker_command $@
+        docker_command "$@"
 
     elif [[ $1 == "help"  ]]; then
 
