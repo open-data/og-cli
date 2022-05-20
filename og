@@ -23,6 +23,7 @@ DOCKER_URI='\e]8;;https://docs.docker.com/get-docker/\e\\Docker\e]8;;\e\\'
 COMPOSE_URI='\e]8;;https://docs.docker.com/compose/\e\\Docker Compose\e]8;;\e\\'
 GIT_URI='\e]8;;https://git-scm.com/download/\e\\Git\e]8;;\e\\'
 projectID=''
+projectDir='false'
 dockerComposeCommand='docker compose'
 
 function output_man {
@@ -115,15 +116,15 @@ function regenerate_hosts_file {
 
         else
 
-            sudo cp /etc/hosts /etc/hosts.d/default.conf
+            sudo cp /etc/hosts /etc/hosts.d/default.conf | sed 's/^/    /g'
             cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
 
         fi
 
     else
 
-        sudo mkdir /etc/hosts.d
-        sudo cp /etc/hosts /etc/hosts.d/default.conf
+        sudo mkdir /etc/hosts.d | sed 's/^/    /g'
+        sudo cp /etc/hosts /etc/hosts.d/default.conf | sed 's/^/    /g'
         cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
 
     fi
@@ -138,11 +139,16 @@ function generate_project_hosts_file {
 
         if [[ -f "/etc/hosts.d/$1.conf" ]]; then
 
-            sudo rm -rf /etc/hosts.d/$1.conf
+            sudo rm -rf /etc/hosts.d/$1.conf | sed 's/^/    /g'
 
         fi
 
-        sudo touch /etc/hosts.d/$1.conf
+        sudo touch /etc/hosts.d/$1.conf | sed 's/^/    /g'
+        if [[ $? -eq 0 ]]; then
+            printf "${Green}${INDENT}Generate project host file /etc/hosts.d/$1.conf: OK${NC}${EOL}"
+        else
+            printf "${Red}${INDENT}Generate project host file /etc/hosts.d/$1.conf: FAIL${NC}${EOL}"
+        fi
         echo "" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
         echo "127.0.0.1	open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
         echo "127.0.0.1	registry.open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
@@ -162,10 +168,81 @@ function delete_project_hosts_file {
 
     if [[ -d "/etc/hosts.d" ]]; then
 
-        sudo rm -rf /etc/hosts.d/$1.conf
+        sudo rm -rf /etc/hosts.d/$1.conf | sed 's/^/    /g'
+        if [[ $? -eq 0 ]]; then
+            printf "${Green}${INDENT}Delete project host file /etc/hosts.d/$1.conf: OK${NC}${EOL}"
+        else
+            printf "${Red}${INDENT}Delete project host file /etc/hosts.d/$1.conf: FAIL${NC}${EOL}"
+        fi
         cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
 
     fi
+
+}
+
+function generate_project_registry_file {
+
+    if [[ -d "$HOME/.docker-og.d" ]]; then
+
+        if [[ -f "$HOME/.docker-og.d/$1.conf" ]]; then
+
+            rm -rf ~/.docker-og.d/$1.conf
+
+        fi
+
+        touch ~/.docker-og.d/$1.conf
+        if [[ $? -eq 0 ]]; then
+            printf "${Green}${INDENT}Generate project registry file $HOME/.docker-og.d/$1.conf: OK${NC}${EOL}"
+        else
+            printf "${Red}${INDENT}Generate project registry file $HOME/.docker-og.d/$1.conf: FAIL${NC}${EOL}"
+        fi
+        echo $(pwd)/$1 > ~/.docker-og.d/$1.conf
+
+    else
+
+        mkdir ~/.docker-og.d
+        touch ~/.docker-og.d/$1.conf
+        if [[ $? -eq 0 ]]; then
+            printf "${Green}${INDENT}Generate project registry file $HOME/.docker-og.d/$1.conf: OK${NC}${EOL}"
+        else
+            printf "${Red}${INDENT}Generate project registry file $HOME/.docker-og.d/$1.conf: FAIL${NC}${EOL}"
+        fi
+        echo $(pwd)/$1 > ~/.docker-og.d/$1.conf
+
+    fi
+
+}
+
+function delete_project_registry_file {
+
+    if [[ -f "$HOME/.docker-og.d/$1.conf" ]]; then
+
+        rm -rf ~/.docker-og.d/$1.conf
+        if [[ $? -eq 0 ]]; then
+            printf "${Green}${INDENT}Delete project registry file $HOME/.docker-og.d/$1.conf: OK${NC}${EOL}"
+        else
+            printf "${Red}${INDENT}Delete project registry file $HOME/.docker-og.d/$1.conf: FAIL${NC}${EOL}"
+        fi
+
+    fi
+
+}
+
+function get_working_directory_from_project_id {
+
+    if [[ -d "$HOME/.docker-og.d" ]]; then
+
+        if [[ -f "$HOME/.docker-og.d/$1.conf" ]]; then
+
+            echo "$(head -n 1 $HOME/.docker-og.d/$1.conf)"
+            return 0
+
+        fi
+
+    fi
+
+    echo "false"
+    return 0
 
 }
 
@@ -215,34 +292,68 @@ function docker_init_command {
 
                     # create docker networks for the project ID
                     printf "${EOL}"
-                    printf "${Cyan}${INDENT}Creating docker networks for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
-                    docker network create og-proxy-network--$projectID
-                    docker network create og-local-network--$projectID
+                    printf "${Cyan}${INDENT}Creating docker networks for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    docker network create og-proxy-network--$projectID | sed 's/^/    /g'
+                    docker network create og-local-network--$projectID | sed 's/^/    /g'
+                    if [[ $? -eq 0 ]]; then
+                        printf "${Green}${INDENT}Create docker networks og-proxy-network--$projectID and og-local-network--$projectID: OK${NC}${EOL}"
+                    else
+                        printf "${Red}${INDENT}Create docker networks og-proxy-network--$projectID and og-local-network--$projectID: FAIL${NC}${EOL}"
+                    fi
 
                     # create directory for the project ID
-                    printf "${Cyan}${INDENT}Creating project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Creating project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
                     mkdir $(pwd)/$projectID
+                    if [[ $? -eq 0 ]]; then
+                        printf "${Green}${INDENT}Create project directory $(pwd)/${projectID}: OK${NC}${EOL}"
+                    else
+                        printf "${Red}${INDENT}Create project directory $(pwd)/${projectID}: FAIL${NC}${EOL}"
+                    fi
+
+                    # add absolute directory path to registry file for the project ID
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Creating project registry file ${ITALIC}${BOLD}~/.docker-og.d/${projectID}.conf${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    generate_project_registry_file $3
 
                     # pull docker-og repo into project directory
-                    printf "${Cyan}${INDENT}Cloning ${REPO_URI} into project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
-                    git clone https://github.com/open-data/docker-og.git $(pwd)/$projectID
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Cloning ${REPO_URI} into project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    git clone https://github.com/open-data/docker-og.git $(pwd)/$projectID 2>&1 | sed 's/^/    /g'
+                    if [[ $? -eq 0 ]]; then
+                        printf "${Green}${INDENT}Clone ${REPO_URI} into $(pwd)/${projectID}: OK${NC}${EOL}"
+                    else
+                        printf "${Red}${INDENT}Clone ${REPO_URI} into $(pwd)/${projectID}: FAIL${NC}${EOL}"
+                    fi
                     
                     # create .project.env file and put project ID into it
-                    printf "${Cyan}${INDENT}Creating ${ITALIC}${BOLD}.project.env${HAIR}${Cyan} file for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
-                    cd $(pwd)/$projectID
-                    touch .project.env
-                    echo "PROJECT_ID=$projectID" > .project.env
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Creating ${ITALIC}${BOLD}.project.env${HAIR}${Cyan} file for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    touch $(pwd)/$projectID/.project.env
+                    if [[ $? -eq 0 ]]; then
+                        printf "${Green}${INDENT}Create project environment file $(pwd)/$projectID/.project.env: OK${NC}${EOL}"
+                    else
+                        printf "${Red}${INDENT}Create project environment file $(pwd)/$projectID/.project.env: FAIL${NC}${EOL}"
+                    fi
+                    echo "PROJECT_ID=$projectID" > $(pwd)/$projectID/.project.env
                     
                     # run the pre-build.sh script
-                    printf "${Cyan}${INDENT}Running ${ITALIC}${BOLD}pre-build.sh${HAIR}${Cyan} script for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
-                    chmod 775 pre-build.sh
-                    ./pre-build.sh $projectID no-interaction
+                    if [[ -f "$(pwd)/$projectID/pre-build.sh" ]]; then
+                        printf "${EOL}"
+                        printf "${Cyan}${INDENT}Running ${ITALIC}${BOLD}pre-build.sh${HAIR}${Cyan} script for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
+                        chmod 775 $(pwd)/$projectID/pre-build.sh
+                        $(pwd)/$projectID/pre-build.sh $projectID no-interaction
+                    else
+                        printf "${EOL}"
+                    fi
 
                     # add execution to installation script
-                    chmod 775 install-local.sh
+                    if [[ -f "$(pwd)/$projectID/install-local.sh" ]]; then
+                        chmod 775 $(pwd)/$projectID/install-local.sh
+                    fi
 
                 else
-
+                    
                     printf "${EOL}"
                     printf "${Yellow}${INDENT}Abandoning docker project creation with ID: ${ITALIC}${BOLD}$3${HAIR}${Yellow}${BOLD}${NC}${SPACER}"
 
@@ -278,13 +389,14 @@ function docker_destroy_command {
 
         if [[ $(does_docker_project_exist $3) == "true"  ]]; then
 
-            if [[ $(does_project_directory_exist $3) == "true"  ]]; then
+            if [[ $(get_working_directory_from_project_id $3) != "false"  ]]; then
 
                 projectID=$3
+                projectDir="$(head -n 1 $HOME/.docker-og.d/$3.conf)"
                 confirmProjectDeletion='false'
 
                 printf "${EOL}"
-                printf "${Cyan}${INDENT}Are you sure you want to delete the Docker OG project at ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} with the ID of ${ITALIC}${BOLD}${projectID}${HAIR}${Cyan}?${NC}${EOL}"
+                printf "${Cyan}${INDENT}Are you sure you want to delete the Docker OG project at ${ITALIC}${BOLD}${projectDir}${HAIR}${Cyan} with the ID of ${ITALIC}${BOLD}${projectID}${HAIR}${Cyan}?${NC}${EOL}"
                 read -r -p $'\033[0;36m    [y/N]: \033[0;0m' response
 
                 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
@@ -293,26 +405,49 @@ function docker_destroy_command {
 
                 fi
 
-                if [[ $confirmProjectCreation == "true" ]]; then
+                if [[ $confirmProjectDeletion == "true" ]]; then
 
                     # delete hosts file for the project ID
                     printf "${EOL}"
-                    printf "${Cyan}${INDENT}Removing project host file ${ITALIC}${BOLD}/etc/hosts.d/$3.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${SPACER}"
+                    printf "${Cyan}${INDENT}Removing project host file ${ITALIC}${BOLD}/etc/hosts.d/$3.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${EOL}"
                     delete_project_hosts_file $3
 
                     # delete docker networks for the project ID
                     printf "${EOL}"
-                    printf "${Cyan}${INDENT}Removing docker networks for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
-                    docker network rm og-proxy-network--$projectID
-                    docker network rm og-local-network--$projectID
+                    printf "${Cyan}${INDENT}Removing docker networks for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    docker network rm og-proxy-network--$projectID | sed 's/^/    /g'
+                    docker network rm og-local-network--$projectID | sed 's/^/    /g'
+                    if [[ $? -eq 0 ]]; then
+                        printf "${Green}${INDENT}Delete docker networks og-proxy-network--$projectID and og-local-network--$projectID: OK${NC}${EOL}"
+                    else
+                        printf "${Red}${INDENT}Delete docker networks og-proxy-network--$projectID and og-local-network--$projectID: FAIL${NC}${EOL}"
+                    fi
 
                     # delete docker images for the project ID
-                    printf "${Cyan}${INDENT}Removing docker images for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
-                    docker image prune --filter "label=projectID=$projectID"
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Removing docker images for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    docker image prune --force --filter "label=projectID=$projectID" | sed 's/^/    /g'
+                    if [[ $? -eq 0 ]]; then
+                        printf "${Green}${INDENT}Delete docker images labeled with 'projectID=$projectID': OK${NC}${EOL}"
+                    else
+                        printf "${Red}${INDENT}Delete docker images labeled with 'projectID=$projectID': FAIL${NC}${EOL}"
+                    fi
 
                     # delete directory for the project ID
-                    printf "${Cyan}${INDENT}Removing project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID:  ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
-                    rm -rf $(pwd)/$projectID
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Removing project directory ${ITALIC}${BOLD}$projectDir${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    rm -rf $projectDir
+                    if [[ $? -eq 0 ]]; then
+                        printf "${Green}${INDENT}Delete project directory $projectDir: OK${NC}${EOL}"
+                    else
+                        printf "${Red}${INDENT}Delete project directory $projectDir: FAIL${NC}${EOL}"
+                    fi
+
+                    # delete registry file for the project ID
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Removing project registry file ${ITALIC}${BOLD}~/.docker-og.d/${projectID}.conf${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    delete_project_registry_file $3
+                    printf "${EOL}"
 
                 else
 
@@ -384,7 +519,7 @@ function docker_command  {
 
                     else
 
-                        #TODO: try to exec docker compose command
+                        #TODO: try to exec docker compose command...or create an exec condition?
                         printf "${EOL}"
                         printf "${Yellow}${INDENT}COMMAND ${ITALIC}${BOLD}$2${HAIR}${Yellow}${BOLD} not found${NC}${EOL}"
                         output_docker_man
