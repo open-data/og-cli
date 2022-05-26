@@ -78,7 +78,7 @@ function does_docker_project_exist {
 
     dockerProjectNotExist='false'
 
-    docker network inspect og-proxy-network--$1 >/dev/null 2>&1 || dockerProjectNotExist='true'
+    docker network inspect og-local-network--$1 >/dev/null 2>&1 || dockerProjectNotExist='true'
 
     if [[ $dockerProjectNotExist == "true" ]]; then
 
@@ -292,13 +292,13 @@ function docker_init_command {
 
                     # create docker networks for the project ID
                     printf "${EOL}"
-                    printf "${Cyan}${INDENT}Creating docker networks for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    docker network create og-proxy-network--$projectID | sed 's/^/    /g'
+                    printf "${Cyan}${INDENT}Creating docker network for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    docker network inspect og-local-network >/dev/null 2>&1 || docker network create og-local-network | sed 's/^/    /g'
                     docker network create og-local-network--$projectID | sed 's/^/    /g'
                     if [[ $? -eq 0 ]]; then
-                        printf "${Green}${INDENT}Create docker networks og-proxy-network--$projectID and og-local-network--$projectID: OK${NC}${EOL}"
+                        printf "${Green}${INDENT}Create docker network og-local-network--$projectID: OK${NC}${EOL}"
                     else
-                        printf "${Red}${INDENT}Create docker networks og-proxy-network--$projectID and og-local-network--$projectID: FAIL${NC}${EOL}"
+                        printf "${Red}${INDENT}Create docker network og-local-network--$projectID: FAIL${NC}${EOL}"
                     fi
 
                     # create directory for the project ID
@@ -328,14 +328,14 @@ function docker_init_command {
                     
                     # create .project.env file and put project ID into it
                     printf "${EOL}"
-                    printf "${Cyan}${INDENT}Creating ${ITALIC}${BOLD}.project.env${HAIR}${Cyan} file for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    touch $(pwd)/$projectID/.project.env
+                    printf "${Cyan}${INDENT}Creating ${ITALIC}${BOLD}.env${HAIR}${Cyan} file for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    touch $(pwd)/$projectID/.env
                     if [[ $? -eq 0 ]]; then
-                        printf "${Green}${INDENT}Create project environment file $(pwd)/$projectID/.project.env: OK${NC}${EOL}"
+                        printf "${Green}${INDENT}Create project environment file $(pwd)/$projectID/.env: OK${NC}${EOL}"
                     else
-                        printf "${Red}${INDENT}Create project environment file $(pwd)/$projectID/.project.env: FAIL${NC}${EOL}"
+                        printf "${Red}${INDENT}Create project environment file $(pwd)/$projectID/.env: FAIL${NC}${EOL}"
                     fi
-                    echo "PROJECT_ID=$projectID" > $(pwd)/$projectID/.project.env
+                    echo "PROJECT_ID=$projectID" > $(pwd)/$projectID/.env
                     
                     # run the pre-build.sh script
                     if [[ -f "$(pwd)/$projectID/pre-build.sh" ]]; then
@@ -414,13 +414,12 @@ function docker_destroy_command {
 
                     # delete docker networks for the project ID
                     printf "${EOL}"
-                    printf "${Cyan}${INDENT}Removing docker networks for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    docker network rm og-proxy-network--$projectID | sed 's/^/    /g'
+                    printf "${Cyan}${INDENT}Removing docker network for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
                     docker network rm og-local-network--$projectID | sed 's/^/    /g'
                     if [[ $? -eq 0 ]]; then
-                        printf "${Green}${INDENT}Delete docker networks og-proxy-network--$projectID and og-local-network--$projectID: OK${NC}${EOL}"
+                        printf "${Green}${INDENT}Delete docker network og-local-network--$projectID: OK${NC}${EOL}"
                     else
-                        printf "${Red}${INDENT}Delete docker networks og-proxy-network--$projectID and og-local-network--$projectID: FAIL${NC}${EOL}"
+                        printf "${Red}${INDENT}Delete docker network og-local-network--$projectID: FAIL${NC}${EOL}"
                     fi
 
                     # delete docker images for the project ID
