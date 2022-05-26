@@ -22,6 +22,7 @@ REPO_URI='\e]8;;https://github.com/open-data/docker-og/\e\\Docker OG\e]8;;\e\\'
 DOCKER_URI='\e]8;;https://docs.docker.com/get-docker/\e\\Docker\e]8;;\e\\'
 COMPOSE_URI='\e]8;;https://docs.docker.com/compose/\e\\Docker Compose\e]8;;\e\\'
 GIT_URI='\e]8;;https://git-scm.com/download/\e\\Git\e]8;;\e\\'
+PRE_BUILD_URI='\e]8;;https://github.com/open-data/docker-og#prebuild\e\\configure local files and backups.\e]8;;\e\\'
 projectID=''
 projectDir='false'
 dockerComposeCommand='docker compose'
@@ -38,7 +39,11 @@ function output_man {
     printf "${INDENT}${INDENT}          ${INDENT}           Usage: ${BOLD}og docker init${HAIR} [PROJECT ID]${SPACER}"
     printf "${INDENT}${INDENT}          ${INDENT}${BOLD}destroy${HAIR}    Deletes the project directory, docker images, and docker networks for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}          ${INDENT}           Usage: ${BOLD}og docker destroy${HAIR} [PROJECT ID]${SPACER}"
+    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}build${HAIR}      Builds all of the docker containers for the given PROJECT ID.${SPACER}"
+    printf "${INDENT}${INDENT}          ${INDENT}           Usage: ${BOLD}og docker build${HAIR} [PROJECT ID]${SPACER}"
     printf "${INDENT}${INDENT}          ${INDENT}${BOLD}help${HAIR}       Outputs the og docker manual.${SPACER}"
+    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}[PROJECT ID] [${dockerComposeCommand} command]${HAIR}      Executes the ${dockerComposeCommand} command for the given PROJECT ID.${SPACER}"
+    printf "${INDENT}${INDENT}          ${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID]${HAIR} [${dockerComposeCommand} command]${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}help${HAIR}      Outputs this manual.${EOL}"
     printf "${EOL}"
 
@@ -53,6 +58,10 @@ function output_docker_man {
     printf "${INDENT}${INDENT}           Usage: ${BOLD}og docker init${HAIR} [PROJECT ID]${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}destroy${HAIR}    Deletes the project directory, docker images, and docker networks for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}           Usage: ${BOLD}og docker destroy${HAIR} [PROJECT ID]${SPACER}"
+    printf "${INDENT}${INDENT}${BOLD}build${HAIR}      Builds all of the docker containers for the given PROJECT ID.${SPACER}"
+    printf "${INDENT}${INDENT}           Usage: ${BOLD}og docker build${HAIR} [PROJECT ID]${SPACER}"
+    printf "${INDENT}${INDENT}${BOLD}[PROJECT ID] [${dockerComposeCommand} command]${HAIR}      Executes the ${dockerComposeCommand} command for the given PROJECT ID.${SPACER}"
+    printf "${INDENT}${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID]${HAIR} [${dockerComposeCommand} command]${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}help${HAIR}       Outputs this manual.${EOL}"
     printf "${EOL}"
 
@@ -70,6 +79,22 @@ function output_docker_destroy_man {
 
     printf "${EOL}"
     printf "${INDENT}Usage: ${BOLD}og docker destroy${HAIR} [PROJECT ID]${EOL}"
+    printf "${EOL}"
+
+}
+
+function output_docker_build_man {
+
+    printf "${EOL}"
+    printf "${INDENT}Usage: ${BOLD}og docker build${HAIR} [PROJECT ID]${EOL}"
+    printf "${EOL}"
+
+}
+
+function output_docker_compose_man {
+
+    printf "${EOL}"
+    printf "${INDENT}Usage: ${BOLD}og docker [PROJECT ID]${HAIR} [${dockerComposeCommand} command]${EOL}"
     printf "${EOL}"
 
 }
@@ -343,14 +368,17 @@ function docker_init_command {
                         printf "${Cyan}${INDENT}Running ${ITALIC}${BOLD}pre-build.sh${HAIR}${Cyan} script for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
                         chmod 775 $(pwd)/$projectID/pre-build.sh
                         $(pwd)/$projectID/pre-build.sh $projectID no-interaction $(pwd)/$projectID
-                    else
-                        printf "${EOL}"
                     fi
 
                     # add execution to installation script
                     if [[ -f "$(pwd)/$projectID/install-local.sh" ]]; then
                         chmod 775 $(pwd)/$projectID/install-local.sh
                     fi
+                    
+                    printf "${Cyan}${INDENT}Project ${ITALIC}${BOLD}$3${HAIR}${Cyan} successfully initiated in the directory $(pwd)/$projectID: ${NC}${EOL}"
+                    printf "${Cyan}${INDENT}Follow the remaining steps to ${PRE_BUILD_URI}${NC}${EOL}"
+                    printf "${Cyan}${INDENT}Then run ${ITALIC}${BOLD}og docker build $3${HAIR}${Cyan} to build all of the project containers.${NC}${EOL}"
+                    printf "${EOL}"
 
                 else
                     
@@ -458,7 +486,7 @@ function docker_destroy_command {
             else
 
                 printf "${EOL}"
-                printf "${Yellow}${INDENT}Project directory ${ITALIC}${BOLD}$(pwd)/$3${HAIR}${Yellow}${BOLD} does not exist.${NC}${SPACER}"
+                printf "${Yellow}${INDENT}Project directory for ${ITALIC}${BOLD}$3${HAIR}${Yellow}${BOLD} does not exist.${NC}${SPACER}"
 
             fi
 
@@ -474,6 +502,117 @@ function docker_destroy_command {
         printf "${EOL}"
         printf "${Yellow}${INDENT}Please supply a PROJECT ID${NC}${EOL}"
         output_docker_destroy_man
+
+    fi
+
+}
+
+function docker_build_command {
+
+    if [[ $3 ]]; then
+
+        if [[ $(does_docker_project_exist $3) == "true"  ]]; then
+
+            if [[ $(get_working_directory_from_project_id $3) != "false"  ]]; then
+
+                projectID=$3
+                projectDir="$(head -n 1 $HOME/.docker-og.d/$3.conf)"
+                printf "${EOL}"
+                printf "${Cyan}${INDENT}Running build for docker project: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                cd $projectDir
+                $dockerComposeCommand build | sed 's/^/    /g'
+                printf "${Cyan}${INDENT}Build attempt for docker project: ${ITALIC}${BOLD}$3${HAIR}${Cyan} complete.${NC}${EOL}"
+                printf "${EOL}"
+
+            else
+
+                printf "${EOL}"
+                printf "${Yellow}${INDENT}Project directory for ${ITALIC}${BOLD}$3${HAIR}${Yellow}${BOLD} does not exist.${NC}${SPACER}"
+
+            fi
+
+        else
+
+            printf "${EOL}"
+            printf "${Yellow}${INDENT}Docker project with ID ${ITALIC}${BOLD}$3${HAIR}${Yellow}${BOLD} does not exist.${NC}${SPACER}"
+
+        fi
+
+    else
+
+        printf "${EOL}"
+        printf "${Yellow}${INDENT}Please supply a PROJECT ID${NC}${EOL}"
+        output_docker_build_man
+
+    fi
+
+}
+
+function attempt_docker_compose_commands {
+
+    if [[ $2 ]]; then
+
+        if [[ $(does_docker_project_exist $2) == "true"  ]]; then
+
+            if [[ $(get_working_directory_from_project_id $2) != "false"  ]]; then
+
+                if [[ $3 ]]; then
+
+                    projectID=$2
+                    projectDir="$(head -n 1 $HOME/.docker-og.d/$2.conf)"
+                    printf "${Cyan}Running ${dockerComposeCommand} command ${ITALIC}${BOLD}$3${HAIR}${Cyan} for docker project: ${ITALIC}${BOLD}$2${HAIR}${Cyan}${NC}${EOL}"
+                    cd $projectDir
+                    $dockerComposeCommand "${@:3}"
+
+                else 
+
+                    printf "${EOL}"
+                    printf "${Yellow}${INDENT}Missing ${dockerComposeCommand} COMMAND${NC}${EOL}"
+                    output_docker_compose_man
+
+                fi
+
+            else
+
+                if [[ $3 ]]; then
+
+                    printf "${EOL}"
+                    printf "${Yellow}${INDENT}COMMAND ${ITALIC}${BOLD}$2${HAIR}${Yellow}${BOLD} not found (project may not exist)${NC}${EOL}"
+                    output_docker_man
+
+                else
+
+                    printf "${EOL}"
+                    printf "${Yellow}${INDENT}COMMAND ${ITALIC}${BOLD}$2${HAIR}${Yellow}${BOLD} not found${NC}${EOL}"
+                    output_docker_man
+
+                fi
+
+            fi
+
+        else
+
+            if [[ $3 ]]; then
+
+                printf "${EOL}"
+                printf "${Yellow}${INDENT}COMMAND ${ITALIC}${BOLD}$2${HAIR}${Yellow}${BOLD} not found (project may not exist)${NC}${EOL}"
+                output_docker_man
+
+            else
+
+                printf "${EOL}"
+                printf "${Yellow}${INDENT}COMMAND ${ITALIC}${BOLD}$2${HAIR}${Yellow}${BOLD} not found${NC}${EOL}"
+                output_docker_man
+
+            fi
+
+        fi
+
+    else
+
+        printf "${EOL}"
+        printf "${Yellow}${INDENT}Missing COMMAND${NC}${EOL}"
+        output_docker_man
 
     fi
 
@@ -512,16 +651,17 @@ function docker_command  {
 
                         docker_destroy_command "$@"
 
+                    elif [[ $2 == "build" ]]; then
+
+                        docker_build_command "$@"
+
                     elif [[ $2 == "help" ]]; then
 
                         output_docker_man
 
                     else
 
-                        #TODO: try to exec docker compose command...or create an exec condition?
-                        printf "${EOL}"
-                        printf "${Yellow}${INDENT}COMMAND ${ITALIC}${BOLD}$2${HAIR}${Yellow}${BOLD} not found${NC}${EOL}"
-                        output_docker_man
+                        attempt_docker_compose_commands "$@"
 
                     fi
 
