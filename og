@@ -340,7 +340,7 @@ function docker_init_command {
                     # run the pre-build.sh script
                     if [[ -f "$(pwd)/$projectID/pre-build.sh" ]]; then
                         printf "${EOL}"
-                        printf "${Cyan}${INDENT}Running ${ITALIC}${BOLD}pre-build.sh${HAIR}${Cyan} script for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${SPACER}"
+                        printf "${Cyan}${INDENT}Running ${ITALIC}${BOLD}pre-build.sh${HAIR}${Cyan} script for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
                         chmod 775 $(pwd)/$projectID/pre-build.sh
                         $(pwd)/$projectID/pre-build.sh $projectID no-interaction $(pwd)/$projectID
                     else
