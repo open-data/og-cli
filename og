@@ -351,7 +351,7 @@ function docker_init_command {
                         printf "${Red}${INDENT}Clone ${REPO_URI} into $(pwd)/${projectID}: FAIL${NC}${EOL}"
                     fi
                     
-                    # create .project.env file and put project ID into it
+                    # create .env file and put project ID into it
                     printf "${EOL}"
                     printf "${Cyan}${INDENT}Creating ${ITALIC}${BOLD}.env${HAIR}${Cyan} file for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
                     touch $(pwd)/$projectID/.env
@@ -361,6 +361,17 @@ function docker_init_command {
                         printf "${Red}${INDENT}Create project environment file $(pwd)/$projectID/.env: FAIL${NC}${EOL}"
                     fi
                     echo "PROJECT_ID=$projectID" > $(pwd)/$projectID/.env
+
+                    # create .env.conf file and put project ID into it
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Creating ${ITALIC}${BOLD}.env.conf${HAIR}${Cyan} nginx file for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    touch $(pwd)/$projectID/docker/config/nginx/conf/.env.conf
+                    if [[ $? -eq 0 ]]; then
+                        printf "${Green}${INDENT}Create project environment file $(pwd)/$projectID/docker/config/nginx/conf/.env.conf: OK${NC}${EOL}"
+                    else
+                        printf "${Red}${INDENT}Create project environment file $(pwd)/$projectID/docker/config/nginx/conf/.env.conf: FAIL${NC}${EOL}"
+                    fi
+                    echo "set \$projectID \"$projectID\";" > $(pwd)/$projectID/docker/config/nginx/conf/.env.conf
                     
                     # run the pre-build.sh script
                     if [[ -f "$(pwd)/$projectID/pre-build.sh" ]]; then
@@ -379,6 +390,9 @@ function docker_init_command {
                     printf "${Cyan}${INDENT}Follow the remaining steps to ${PRE_BUILD_URI}${NC}${EOL}"
                     printf "${Cyan}${INDENT}Then run ${ITALIC}${BOLD}og docker build $3${HAIR}${Cyan} to build all of the project containers.${NC}${EOL}"
                     printf "${EOL}"
+
+                    #TODO: prompt to build all of the containers.
+                    #TODO: prompt user to install apps
 
                 else
                     
