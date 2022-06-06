@@ -22,7 +22,7 @@ REPO_URI='\e]8;;https://github.com/open-data/docker-og/\e\\Docker OG\e]8;;\e\\'
 DOCKER_URI='\e]8;;https://docs.docker.com/get-docker/\e\\Docker\e]8;;\e\\'
 COMPOSE_URI='\e]8;;https://docs.docker.com/compose/\e\\Docker Compose\e]8;;\e\\'
 GIT_URI='\e]8;;https://git-scm.com/download/\e\\Git\e]8;;\e\\'
-PRE_BUILD_URI='\e]8;;https://github.com/open-data/docker-og#prebuild\e\\configure local files and backups.\e]8;;\e\\'
+PRE_BUILD_URI='\e]8;;https://github.com/open-data/docker-og#prebuild\e\\configure local or global files and backups.\e]8;;\e\\'
 projectID=''
 projectDir='false'
 dockerComposeCommand='docker compose'
@@ -360,7 +360,7 @@ function docker_init_command {
                     else
                         printf "${Red}${INDENT}Create project environment file $(pwd)/$projectID/.env: FAIL${NC}${EOL}"
                     fi
-                    echo "PROJECT_ID=$projectID" > $(pwd)/$projectID/.env
+                    echo -e "PROJECT_ID=$projectID\nUSER_ID=$(id -u)\nGROUP_ID=$(id -g)" > $(pwd)/$projectID/.env
 
                     # create .env.conf file and put project ID into it
                     printf "${EOL}"
