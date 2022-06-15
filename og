@@ -41,9 +41,11 @@ function output_man {
     printf "${INDENT}${INDENT}          ${INDENT}           Usage: ${BOLD}og docker destroy${HAIR} [PROJECT ID]${SPACER}"
     printf "${INDENT}${INDENT}          ${INDENT}${BOLD}build${HAIR}      Builds all of the docker containers for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}          ${INDENT}           Usage: ${BOLD}og docker build${HAIR} [PROJECT ID]${SPACER}"
-    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}help${HAIR}       Outputs the og docker manual.${SPACER}"
+    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}[PROJECT ID] install [container]${HAIR}           Executes the installaion script for the given PROJECT ID and container.${SPACER}"
+    printf "${INDENT}${INDENT}          ${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID] install${HAIR} [drupal|django|ckan|ckanapi]${SPACER}"
     printf "${INDENT}${INDENT}          ${INDENT}${BOLD}[PROJECT ID] [${dockerComposeCommand} command]${HAIR}      Executes the ${dockerComposeCommand} command for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}          ${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID]${HAIR} [${dockerComposeCommand} command]${SPACER}"
+    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}help${HAIR}       Outputs the og docker manual.${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}help${HAIR}      Outputs this manual.${EOL}"
     printf "${EOL}"
 
@@ -60,6 +62,8 @@ function output_docker_man {
     printf "${INDENT}${INDENT}           Usage: ${BOLD}og docker destroy${HAIR} [PROJECT ID]${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}build${HAIR}      Builds all of the docker containers for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}           Usage: ${BOLD}og docker build${HAIR} [PROJECT ID]${SPACER}"
+    printf "${INDENT}${INDENT}${BOLD}[PROJECT ID] install [container]${HAIR}           Executes the installaion script for the given PROJECT ID and container.${SPACER}"
+    printf "${INDENT}${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID] install${HAIR} [drupal|django|ckan|ckanapi]${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}[PROJECT ID] [${dockerComposeCommand} command]${HAIR}      Executes the ${dockerComposeCommand} command for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID]${HAIR} [${dockerComposeCommand} command]${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}help${HAIR}       Outputs this manual.${EOL}"
@@ -95,6 +99,14 @@ function output_docker_compose_man {
 
     printf "${EOL}"
     printf "${INDENT}Usage: ${BOLD}og docker [PROJECT ID]${HAIR} [${dockerComposeCommand} command]${EOL}"
+    printf "${EOL}"
+
+}
+
+function output_docker_install_man {
+
+    printf "${EOL}"
+    printf "${INDENT}Usage: ${BOLD}og docker [PROJECT ID] install${HAIR} [drupal|django|ckan|ckanapi]${EOL}"
     printf "${EOL}"
 
 }
@@ -344,7 +356,8 @@ function docker_init_command {
                     # pull docker-og repo into project directory
                     printf "${EOL}"
                     printf "${Cyan}${INDENT}Cloning ${REPO_URI} into project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    git clone https://github.com/open-data/docker-og.git $(pwd)/$projectID 2>&1 | sed 's/^/    /g'
+                    #git clone https://github.com/open-data/docker-og.git $(pwd)/$projectID 2>&1 | sed 's/^/    /g'
+                    git clone --branch develop --single-branch https://github.com/open-data/docker-og.git $(pwd)/$projectID 2>&1 | sed 's/^/    /g'
                     if [[ $? -eq 0 ]]; then
                         printf "${Green}${INDENT}Clone ${REPO_URI} into $(pwd)/${projectID}: OK${NC}${EOL}"
                     else
@@ -387,12 +400,27 @@ function docker_init_command {
                     fi
                     
                     printf "${Cyan}${INDENT}Project ${ITALIC}${BOLD}$3${HAIR}${Cyan} successfully initiated in the directory $(pwd)/$projectID: ${NC}${EOL}"
-                    printf "${Cyan}${INDENT}Follow the remaining steps to ${PRE_BUILD_URI}${NC}${EOL}"
-                    printf "${Cyan}${INDENT}Then run ${ITALIC}${BOLD}og docker build $3${HAIR}${Cyan} to build all of the project containers.${NC}${EOL}"
-                    printf "${EOL}"
 
-                    #TODO: prompt to build all of the containers.
-                    #TODO: prompt user to install apps
+                    confirmBuildContainers='false'
+
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Did you want to build the docker containers for project ${ITALIC}${BOLD}$projectID${HAIR}${Cyan}?${NC}${EOL}"
+                    read -r -p $'\033[0;36m    [y/N]: \033[0;0m' response
+
+                    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+
+                        confirmBuildContainers='true'
+
+                    fi
+
+                    if [[ $confirmBuildContainers == "true" ]]; then
+
+                        og docker build $projectID
+
+                    fi
+
+                    printf "${Cyan}${INDENT}Run ${ITALIC}${BOLD}og docker $projectID install [drupal|django|ckan]${HAIR}${Cyan} to install the apps into their containers.${NC}${EOL}"
+                    printf "${EOL}"
 
                 else
                     
@@ -572,11 +600,46 @@ function attempt_docker_compose_commands {
 
                 if [[ $3 ]]; then
 
-                    projectID=$2
-                    projectDir="$(head -n 1 $HOME/.docker-og.d/$2.conf)"
-                    printf "${Cyan}Running ${dockerComposeCommand} command ${ITALIC}${BOLD}$3${HAIR}${Cyan} for docker project: ${ITALIC}${BOLD}$2${HAIR}${Cyan}${NC}${EOL}"
-                    cd $projectDir
-                    $dockerComposeCommand "${@:3}"
+                    if [[ $3 == "install" ]]; then
+
+                        validAppRole='false'
+
+                        if [[ $4 == "drupal" ]]; then validAppRole='true'; fi
+                        if [[ $4 == "django" ]]; then validAppRole='true'; fi
+                        if [[ $4 == "ckan" ]]; then validAppRole='true'; fi
+                        if [[ $4 == "ckanapi" ]]; then validAppRole='true'; fi
+
+                        if [[ $validAppRole == "false" ]]; then
+
+                            printf "${EOL}"
+                            printf "${Yellow}${INDENT}CONTAINER $4 invalid for app installation${NC}${EOL}"
+                            output_docker_install_man
+
+                        else
+
+                            projectID=$2
+                            projectDir="$(head -n 1 $HOME/.docker-og.d/$2.conf)"
+                            appRole=$4
+                            printf "${Cyan}Running ${ITALIC}${BOLD}$appRole installation${HAIR}${Cyan} for docker project: ${ITALIC}${BOLD}$2${HAIR}${Cyan}${NC}${EOL}"
+                            cd $projectDir
+                            $dockerComposeCommand up -d $appRole
+                            if [[ $? -eq 0 ]]; then
+                                $dockerComposeCommand exec $appRole bash -c "./install.sh"
+                            else
+                                printf "${Red}${INDENT}Something went wrong bringing up the ${ITALIC}${BOLD}$appRole container${HAIR}${Red} for the project: ${ITALIC}${BOLD}$projectID${HAIR}${Red}. Exiting installation...${NC}${EOL}"
+                            fi
+
+                        fi
+
+                    else
+
+                        projectID=$2
+                        projectDir="$(head -n 1 $HOME/.docker-og.d/$2.conf)"
+                        printf "${Cyan}Running ${dockerComposeCommand} command ${ITALIC}${BOLD}$3${HAIR}${Cyan} for docker project: ${ITALIC}${BOLD}$2${HAIR}${Cyan}${NC}${EOL}"
+                        cd $projectDir
+                        $dockerComposeCommand "${@:3}"
+
+                    fi
 
                 else 
 
