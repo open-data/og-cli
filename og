@@ -149,12 +149,12 @@ function regenerate_hosts_file {
 
         if [[ -f "/etc/hosts.d/default.conf" ]]; then
 
-            cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+            sudo cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
 
         else
 
             sudo cp /etc/hosts /etc/hosts.d/default.conf | sed 's/^/    /g'
-            cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+            sudo cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
 
         fi
 
@@ -162,7 +162,7 @@ function regenerate_hosts_file {
 
         sudo mkdir /etc/hosts.d | sed 's/^/    /g'
         sudo cp /etc/hosts /etc/hosts.d/default.conf | sed 's/^/    /g'
-        cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+        sudo cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
 
     fi
 
@@ -193,7 +193,7 @@ function generate_project_hosts_file {
         echo "127.0.0.1	solr.open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
         echo "127.0.0.1	search.open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
         echo "" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
-        cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+        sudo cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
 
     fi
 
@@ -211,7 +211,7 @@ function delete_project_hosts_file {
         else
             printf "${Red}${INDENT}Delete project host file /etc/hosts.d/$1.conf: FAIL${NC}${EOL}"
         fi
-        cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+        sudo cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
 
     fi
 
