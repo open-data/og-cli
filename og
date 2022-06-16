@@ -717,6 +717,8 @@ function docker_command  {
         if [[ dockerComposeCommand != "false" ]]; then
 
             if [[ -x "$(command -v git)" ]]; then
+
+                #TODO: check that docker service is running...
         
                 if [[ $2 ]]; then
 
