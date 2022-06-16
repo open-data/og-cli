@@ -147,14 +147,17 @@ function regenerate_hosts_file {
 
     if [[ -d "/etc/hosts.d" ]]; then
 
+        sudo cd /etc/hosts.d
+
         if [[ -f "/etc/hosts.d/default.conf" ]]; then
 
-            sudo cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+            sudo ls /etc/hosts.d | sudo cat $(grep .conf) | sudo tee /etc/hosts >/dev/null
 
         else
 
             sudo cp /etc/hosts /etc/hosts.d/default.conf | sed 's/^/    /g'
-            sudo cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+            sudo cd /etc/hosts.d
+            sudo ls /etc/hosts.d | sudo cat $(grep .conf) | sudo tee /etc/hosts >/dev/null
 
         fi
 
@@ -162,7 +165,8 @@ function regenerate_hosts_file {
 
         sudo mkdir /etc/hosts.d | sed 's/^/    /g'
         sudo cp /etc/hosts /etc/hosts.d/default.conf | sed 's/^/    /g'
-        sudo cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+        sudo cd /etc/hosts.d
+        sudo ls /etc/hosts.d | sudo cat $(grep .conf) | sudo tee /etc/hosts >/dev/null
 
     fi
 
@@ -193,7 +197,8 @@ function generate_project_hosts_file {
         echo "127.0.0.1	solr.open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
         echo "127.0.0.1	search.open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
         echo "" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
-        sudo cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+        sudo cd /etc/hosts.d
+        sudo ls /etc/hosts.d | sudo cat $(grep .conf) | sudo tee /etc/hosts >/dev/null
 
     fi
 
@@ -211,7 +216,8 @@ function delete_project_hosts_file {
         else
             printf "${Red}${INDENT}Delete project host file /etc/hosts.d/$1.conf: FAIL${NC}${EOL}"
         fi
-        sudo cat /etc/hosts.d/*.conf | sudo tee /etc/hosts >/dev/null
+        sudo cd /etc/hosts.d
+        sudo ls /etc/hosts.d | sudo cat $(grep .conf) | sudo tee /etc/hosts >/dev/null
 
     fi
 
@@ -326,6 +332,7 @@ function docker_init_command {
                     printf "${EOL}"
                     printf "${Cyan}${INDENT}Generating new project host file ${ITALIC}${BOLD}/etc/hosts.d/$3.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${EOL}"
                     generate_project_hosts_file $3
+                    cd $(pwd)
 
                     # create docker networks for the project ID
                     printf "${EOL}"
@@ -718,37 +725,44 @@ function docker_command  {
 
             if [[ -x "$(command -v git)" ]]; then
 
-                #TODO: check that docker service is running...
-        
-                if [[ $2 ]]; then
+                if $(pgrep docker); then
 
-                    if [[ $2 == "init" ]]; then
+                    if [[ $2 ]]; then
 
-                        docker_init_command "$@"
+                        if [[ $2 == "init" ]]; then
 
-                    elif [[ $2 == "destroy" ]]; then
+                            docker_init_command "$@"
 
-                        docker_destroy_command "$@"
+                        elif [[ $2 == "destroy" ]]; then
 
-                    elif [[ $2 == "build" ]]; then
+                            docker_destroy_command "$@"
 
-                        docker_build_command "$@"
+                        elif [[ $2 == "build" ]]; then
 
-                    elif [[ $2 == "help" ]]; then
+                            docker_build_command "$@"
 
-                        output_docker_man
+                        elif [[ $2 == "help" ]]; then
+
+                            output_docker_man
+
+                        else
+
+                            attempt_docker_compose_commands "$@"
+
+                        fi
 
                     else
 
-                        attempt_docker_compose_commands "$@"
+                        printf "${EOL}"
+                        printf "${Yellow}${INDENT}Please supply a COMMAND${NC}${EOL}"
+                        output_docker_man
 
                     fi
 
                 else
 
                     printf "${EOL}"
-                    printf "${Yellow}${INDENT}Please supply a COMMAND${NC}${EOL}"
-                    output_docker_man
+                    printf "${Red}${INDENT}${BOLD}Docker service not running. ${ITALIC}${BOLD}Docker OG${HAIR}${Red}${BOLD} requires the Docker service to be running.${HAIR}${NC}${SPACER}"
 
                 fi
 
