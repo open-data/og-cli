@@ -725,7 +725,7 @@ function docker_command  {
 
             if [[ -x "$(command -v git)" ]]; then
 
-                if $(pgrep docker); then
+                if [ $(pgrep docker) ]; then
 
                     if [[ $2 ]]; then
 
