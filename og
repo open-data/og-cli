@@ -265,6 +265,37 @@ function get_working_directory_from_project_id {
 
 }
 
+function generate_port_number {
+
+    if [[ -f "$(pwd)/.env" ]]; then
+
+        count=0
+
+        for file in ~/.docker-og.d/*; do
+
+            if [[ "$file" == *"$1.conf"* ]]; then
+
+                portNumber="${count}"
+
+                if [[ $portNumber < 10 ]]; then
+                    portNumber="00${portNumber}"
+                elif [[ $portNumber < 100 ]]; then
+                    portNumber="0${portNumber}"
+                fi
+
+                echo -e "PORT=157${portNumber}\n" >> $(pwd)/$1/.env
+                break
+
+            fi
+
+            let count++
+
+        done
+        
+    fi
+
+}
+
 function docker_init_command {
 
     if [[ $3 ]]; then
@@ -354,7 +385,11 @@ function docker_init_command {
                     else
                         printf "${Red}${INDENT}Create project environment file $(pwd)/$projectID/.env: FAIL${NC}${EOL}"
                     fi
-                    echo -e "PROJECT_ID=$projectID\nUSER_ID=$(id -u)\nGROUP_ID=$(id -g)" > $(pwd)/$projectID/.env
+                    echo -e "PROJECT_ID=$projectID\nUSER_ID=$(id -u)\nGROUP_ID=$(id -g)\n" > $(pwd)/$projectID/.env
+
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Generating port number for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    generate_port_number $3
 
                     # create .env.conf file and put project ID into it
                     printf "${EOL}"
