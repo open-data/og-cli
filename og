@@ -267,9 +267,12 @@ function get_working_directory_from_project_id {
 
 function generate_port_number {
 
-    if [[ -f "$(pwd)/.env" ]]; then
+    didPortGeneration="false"
+    portNumber=""
 
-        count=0
+    if [[ -f "$(pwd)/$1/.env" ]]; then
+
+        count=1
 
         for file in ~/.docker-og.d/*; do
 
@@ -283,6 +286,8 @@ function generate_port_number {
                     portNumber="0${portNumber}"
                 fi
 
+                didPortGeneration="true"
+
                 echo -e "PORT=157${portNumber}\n" >> $(pwd)/$1/.env
                 break
 
@@ -292,6 +297,16 @@ function generate_port_number {
 
         done
         
+    fi
+
+    if [[ $didPortGeneration == "true" ]]; then
+
+        printf "${Green}${INDENT}Generate port number 157${portNumber}: OK${NC}${EOL}"
+
+    else
+
+        printf "${Red}${INDENT}Generate port number: FAIL${NC}${EOL}"
+
     fi
 
 }
