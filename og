@@ -272,7 +272,7 @@ function generate_port_number {
 
     if [[ -f "$(pwd)/$1/.env" ]]; then
 
-        count=1
+        count=0
 
         for file in ~/.docker-og.d/*; do
 
@@ -288,12 +288,12 @@ function generate_port_number {
 
                 didPortGeneration="true"
 
-                echo -e "PORT=157${portNumber}\n" >> $(pwd)/$1/.env
+                echo -e "PORT=57${portNumber}\n" >> $(pwd)/$1/.env
                 break
 
             fi
 
-            let count++
+            let count += 2
 
         done
         
