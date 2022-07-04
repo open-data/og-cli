@@ -267,7 +267,7 @@ function get_working_directory_from_project_id {
 
 function initialize_port_pool {
 
-    if [[ ! -d "~/.docker-og.pool" ]]; then
+    if [[ ! -d "~/.docker-og.pool" && ! -f "~/.docker-og.pool" ]]; then
 
         mkdir ~/.docker-og.pool
         touch ~/.docker-og.pool/{57000..57999}.port
@@ -284,7 +284,7 @@ function rent_port_number {
 
     if [[ -f "$(pwd)/$1/.env" ]]; then
 
-        portNumber=$(ls ~/.docker-og.pool/* | head -1 | sed -e "s/\.port$//")
+        portNumber=$(ls ~/.docker-og.pool | head -1 | sed -e "s/\.port$//")
         echo -e "PORT=${portNumber}\n" >> $(pwd)/$1/.env
 
         if [[ $? -eq 0 ]]; then
@@ -303,7 +303,7 @@ function rent_port_number {
 
         fi
 
-        portNumber=$(ls ~/.docker-og.pool/* | head -1 | sed -e "s/\.port$//")
+        portNumber=$(ls ~/.docker-og.pool | head -1 | sed -e "s/\.port$//")
         echo -e "DBPORT=${portNumber}\n" >> $(pwd)/$1/.env
 
         if [[ $? -eq 0 ]]; then
