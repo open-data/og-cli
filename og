@@ -267,7 +267,7 @@ function get_working_directory_from_project_id {
 
 function initialize_port_pool {
 
-    if [[ ! -d "~/.docker-og.pool" && ! -f "~/.docker-og.pool" ]]; then
+    if [[ ! -d "$HOME/.docker-og.pool" ]]; then
 
         mkdir ~/.docker-og.pool
         touch ~/.docker-og.pool/{57000..57999}.port
