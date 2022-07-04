@@ -338,9 +338,9 @@ function release_port_number {
 
             touch ~/.docker-og.pool/$PORT.port
             if [[ $? -eq 0 ]]; then
-                printf "${Green}${INDENT}Release port number ${portNumber} into pool: OK${NC}${EOL}"
+                printf "${Green}${INDENT}Release port number ${PORT} into pool: OK${NC}${EOL}"
             else
-                printf "${Red}${INDENT}Release port number ${portNumber} into pool: FAIL${NC}${EOL}"
+                printf "${Red}${INDENT}Release port number ${PORT} into pool: FAIL${NC}${EOL}"
             fi
 
         fi
@@ -349,9 +349,9 @@ function release_port_number {
 
             touch ~/.docker-og.pool/$DBPORT.port
             if [[ $? -eq 0 ]]; then
-                printf "${Green}${INDENT}Release port number ${portNumber} into pool: OK${NC}${EOL}"
+                printf "${Green}${INDENT}Release port number ${DBPORT} into pool: OK${NC}${EOL}"
             else
-                printf "${Red}${INDENT}Release port number ${portNumber} into pool: FAIL${NC}${EOL}"
+                printf "${Red}${INDENT}Release port number ${DBPORT} into pool: FAIL${NC}${EOL}"
             fi
 
         fi
