@@ -265,47 +265,96 @@ function get_working_directory_from_project_id {
 
 }
 
-function generate_port_number {
+function initialize_port_pool {
 
-    didPortGeneration="false"
+    if [[ ! -d "~/.docker-og.pool" ]]; then
+
+        mkdir ~/.docker-og.pool
+        touch ~/.docker-og.pool/{57000..57999}.port
+
+    fi
+
+}
+
+function rent_port_number {
+
+    initialize_port_pool
+
     portNumber=""
 
     if [[ -f "$(pwd)/$1/.env" ]]; then
 
-        count=0
+        portNumber=$(ls ~/.docker-og.pool/* | head -1 | sed -e "s/\.port$//")
+        echo -e "PORT=${portNumber}\n" >> $(pwd)/$1/.env
 
-        for file in 'ls -tUr ~/.docker-og.d/*'; do
+        if [[ $? -eq 0 ]]; then
 
-            if [[ "$file" == *"$1.conf"* ]]; then
-
-                portNumber="${count}"
-
-                if [[ $portNumber < 10 ]]; then
-                    portNumber="00${portNumber}"
-                elif [[ $portNumber < 100 ]]; then
-                    portNumber="0${portNumber}"
-                fi
-
-                didPortGeneration="true"
-
-                echo -e "PORT=57${portNumber}\n" >> $(pwd)/$1/.env
-                break
-
+            printf "${Green}${INDENT}Rent port number ${portNumber} for proxy: OK${NC}${EOL}"
+            rm $(ls ~/.docker-og.pool/* | head -1)
+            if [[ $? -eq 0 ]]; then
+                printf "${Green}${INDENT}Remove port number ${portNumber} from pool: OK${NC}${EOL}"
+            else
+                printf "${Red}${INDENT}Remove port number ${portNumber} from pool: FAIL${NC}${EOL}"
             fi
 
-            let count += 2
+        else
 
-        done
+            printf "${Red}${INDENT}Rent port number for proxy: FAIL${NC}${EOL}"
+
+        fi
+
+        portNumber=$(ls ~/.docker-og.pool/* | head -1 | sed -e "s/\.port$//")
+        echo -e "DBPORT=${portNumber}\n" >> $(pwd)/$1/.env
+
+        if [[ $? -eq 0 ]]; then
+
+            printf "${Green}${INDENT}Rent port number ${portNumber} for postgres: OK${NC}${EOL}"
+            rm $(ls ~/.docker-og.pool/* | head -1)
+            if [[ $? -eq 0 ]]; then
+                printf "${Green}${INDENT}Remove port number ${portNumber} from pool: OK${NC}${EOL}"
+            else
+                printf "${Red}${INDENT}Remove port number ${portNumber} from pool: FAIL${NC}${EOL}"
+            fi
+
+        else
+
+            printf "${Red}${INDENT}Rent port number for postgres: FAIL${NC}${EOL}"
+
+        fi
         
     fi
 
-    if [[ $didPortGeneration == "true" ]]; then
+}
 
-        printf "${Green}${INDENT}Generate port number 157${portNumber}: OK${NC}${EOL}"
+function release_port_number {
 
-    else
+    initialize_port_pool
 
-        printf "${Red}${INDENT}Generate port number: FAIL${NC}${EOL}"
+    if [[ -f "$1/.env" ]]; then
+
+        source $1/.env
+
+        if [[ ! -f "~/.docker-og.pool/$PORT.port" ]]; then
+
+            touch ~/.docker-og.pool/$PORT.port
+            if [[ $? -eq 0 ]]; then
+                printf "${Green}${INDENT}Release port number ${portNumber} into pool: OK${NC}${EOL}"
+            else
+                printf "${Red}${INDENT}Release port number ${portNumber} into pool: FAIL${NC}${EOL}"
+            fi
+
+        fi
+
+        if [[ ! -f "~/.docker-og.pool/$DBPORT.port" ]]; then
+
+            touch ~/.docker-og.pool/$DBPORT.port
+            if [[ $? -eq 0 ]]; then
+                printf "${Green}${INDENT}Release port number ${portNumber} into pool: OK${NC}${EOL}"
+            else
+                printf "${Red}${INDENT}Release port number ${portNumber} into pool: FAIL${NC}${EOL}"
+            fi
+
+        fi
 
     fi
 
@@ -404,7 +453,7 @@ function docker_init_command {
 
                     printf "${EOL}"
                     printf "${Cyan}${INDENT}Generating port number for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    generate_port_number $3
+                    rent_port_number $3
 
                     # create .env.conf file and put project ID into it
                     printf "${EOL}"
@@ -527,6 +576,11 @@ function docker_destroy_command {
                     else
                         printf "${Red}${INDENT}Delete docker images labeled with 'projectID=$projectID': FAIL${NC}${EOL}"
                     fi
+
+                    # release port numbers back into pool
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Releasing port numbers back into the pool for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    release_port_number $projectDir
 
                     # delete directory for the project ID
                     printf "${EOL}"
