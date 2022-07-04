@@ -267,10 +267,10 @@ function get_working_directory_from_project_id {
 
 function initialize_port_pool {
 
-    if [[ ! -d "$HOME/.docker-og.pool" ]]; then
+    if [[ ! -d "$HOME/.docker-og.pools/ports" ]]; then
 
-        mkdir ~/.docker-og.pool
-        touch ~/.docker-og.pool/{57000..57999}.port
+        mkdir -p ~/.docker-og.pools/ports
+        touch ~/.docker-og.pools/ports/{57000..57999}.port
 
     fi
 
@@ -284,13 +284,13 @@ function rent_port_number {
 
     if [[ -f "$(pwd)/$1/.env" ]]; then
 
-        portNumber=$(ls ~/.docker-og.pool | head -1 | sed -e "s/\.port$//")
+        portNumber=$(ls ~/.docker-og.pools/ports | head -1 | sed -e "s/\.port$//")
         echo -e "PORT=${portNumber}\n" >> $(pwd)/$1/.env
 
         if [[ $? -eq 0 ]]; then
 
             printf "${Green}${INDENT}Rent port number ${portNumber} for proxy: OK${NC}${EOL}"
-            rm $(ls ~/.docker-og.pool/* | head -1)
+            rm $(ls ~/.docker-og.pools/ports/* | head -1)
             if [[ $? -eq 0 ]]; then
                 printf "${Green}${INDENT}Remove port number ${portNumber} from pool: OK${NC}${EOL}"
             else
@@ -303,13 +303,13 @@ function rent_port_number {
 
         fi
 
-        portNumber=$(ls ~/.docker-og.pool | head -1 | sed -e "s/\.port$//")
+        portNumber=$(ls ~/.docker-og.pools/ports | head -1 | sed -e "s/\.port$//")
         echo -e "DBPORT=${portNumber}\n" >> $(pwd)/$1/.env
 
         if [[ $? -eq 0 ]]; then
 
             printf "${Green}${INDENT}Rent port number ${portNumber} for postgres: OK${NC}${EOL}"
-            rm $(ls ~/.docker-og.pool/* | head -1)
+            rm $(ls ~/.docker-og.pools/ports/* | head -1)
             if [[ $? -eq 0 ]]; then
                 printf "${Green}${INDENT}Remove port number ${portNumber} from pool: OK${NC}${EOL}"
             else
@@ -334,9 +334,9 @@ function release_port_number {
 
         source $1/.env
 
-        if [[ ! -f "~/.docker-og.pool/$PORT.port" ]]; then
+        if [[ ! -f "~/.docker-og.pools/ports/$PORT.port" ]]; then
 
-            touch ~/.docker-og.pool/$PORT.port
+            touch ~/.docker-og.pools/ports/$PORT.port
             if [[ $? -eq 0 ]]; then
                 printf "${Green}${INDENT}Release port number ${PORT} into pool: OK${NC}${EOL}"
             else
@@ -345,13 +345,78 @@ function release_port_number {
 
         fi
 
-        if [[ ! -f "~/.docker-og.pool/$DBPORT.port" ]]; then
+        if [[ ! -f "~/.docker-og.pools/ports/$DBPORT.port" ]]; then
 
-            touch ~/.docker-og.pool/$DBPORT.port
+            touch ~/.docker-og.pools/ports/$DBPORT.port
             if [[ $? -eq 0 ]]; then
                 printf "${Green}${INDENT}Release port number ${DBPORT} into pool: OK${NC}${EOL}"
             else
                 printf "${Red}${INDENT}Release port number ${DBPORT} into pool: FAIL${NC}${EOL}"
+            fi
+
+        fi
+
+    fi
+
+}
+
+function initialize_octet_pool {
+
+    if [[ ! -d "$HOME/.docker-og.pools/octets" ]]; then
+
+        mkdir -p ~/.docker-og.pools/octets
+        touch ~/.docker-og.pools/octets/{1..254}.octet
+
+    fi
+
+}
+
+function rent_ip_octet {
+
+    initialize_octet_pool
+
+    octet=""
+
+    if [[ -f "$(pwd)/$1/.env" ]]; then
+
+        octet=$(ls ~/.docker-og.pools/octets | head -1 | sed -e "s/\.octet$//")
+        echo -e "OCTET=${octet}\n" >> $(pwd)/$1/.env
+
+        if [[ $? -eq 0 ]]; then
+
+            printf "${Green}${INDENT}Rent port number ${octet} for proxy: OK${NC}${EOL}"
+            rm $(ls ~/.docker-og.pools/octets/* | head -1)
+            if [[ $? -eq 0 ]]; then
+                printf "${Green}${INDENT}Remove octet ${octet} from pool: OK${NC}${EOL}"
+            else
+                printf "${Red}${INDENT}Remove octet ${octet} from pool: FAIL${NC}${EOL}"
+            fi
+
+        else
+
+            printf "${Red}${INDENT}Rent octet for docker network: FAIL${NC}${EOL}"
+
+        fi
+        
+    fi
+
+}
+
+function release_ip_octet {
+
+    initialize_octet_pool
+
+    if [[ -f "$1/.env" ]]; then
+
+        source $1/.env
+
+        if [[ ! -f "~/.docker-og.pools/octets/$OCTET.octet" ]]; then
+
+            touch ~/.docker-og.pools/octets/$OCTET.octet
+            if [[ $? -eq 0 ]]; then
+                printf "${Green}${INDENT}Release octet ${OCTET} into pool: OK${NC}${EOL}"
+            else
+                printf "${Red}${INDENT}Release octet ${OCTET} into pool: FAIL${NC}${EOL}"
             fi
 
         fi
@@ -451,9 +516,15 @@ function docker_init_command {
                     fi
                     echo -e "PROJECT_ID=$projectID\nUSER_ID=$(id -u)\nGROUP_ID=$(id -g)\n" > $(pwd)/$projectID/.env
 
+                    # renting some port numbers from the pool
                     printf "${EOL}"
-                    printf "${Cyan}${INDENT}Generating port number for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    printf "${Cyan}${INDENT}Renting port numbers for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
                     rent_port_number $3
+
+                    # renting an ip octet from the pool
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Renting ip octet for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    rent_ip_octet $3
 
                     # create .env.conf file and put project ID into it
                     printf "${EOL}"
@@ -581,6 +652,11 @@ function docker_destroy_command {
                     printf "${EOL}"
                     printf "${Cyan}${INDENT}Releasing port numbers back into the pool for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
                     release_port_number $projectDir
+
+                    # release octet back into pool
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Releasing ip octet back into the pool for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    release_ip_octet $projectDir
 
                     # delete directory for the project ID
                     printf "${EOL}"
