@@ -425,6 +425,50 @@ function release_ip_octet {
 
 }
 
+function project_info {
+
+    if [[ -d "$HOME/.docker-og.d" ]]; then
+
+        if [[ -f "$HOME/.docker-og.d/$1.conf" ]]; then
+
+            dir="$(head -n 1 $HOME/.docker-og.d/$1.conf)"
+
+            if [[ -f "$dir/.env" ]]; then
+
+                source $dir/.env
+
+                #TODO: fix uris
+
+                drupalProjectURI="\e]8;;http://open.local:${PORT}\e\\open.local:${PORT}\e]8;;\e\\"
+                djangoProjectURI="\e]8;;http://search.open.local:${PORT}\e\\search.open.local:${PORT}\e]8;;\e\\"
+                ckanProjectURI="\e]8;;http://registry.open.local:${PORT}\e\\registry.open.local:${PORT}\e]8;;\e\\"
+                solrProjectURI="\e]8;;http://solr.open.local:${PORT}\e\\solr.open.local:${PORT}\e]8;;\e\\"
+
+                printf "${EOL}"
+                printf "${INDENT}Project ID:           ${BOLD}${PROJECT_ID}${HAIR}${SPACER}"
+                printf "${INDENT}Working Directory:    ${BOLD}${dir}${HAIR}${SPACER}"
+                printf "${INDENT}Network:              ${BOLD}${OCTET}.0.0.0/16${HAIR}${SPACER}"
+                printf "${INDENT}Web Port:             ${BOLD}${PORT}${HAIR}${SPACER}"
+                printf "${INDENT}Database Port:        ${BOLD}${DBPORT}${HAIR}${SPACER}"
+                printf "${INDENT}Web Addresses:${EOL}"
+                printf "${INDENT}${INDENT}Drupal:           ${BOLD}${drupalProjectURI}"
+                printf "${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Django:           ${BOLD}${djangoProjectURI}"
+                printf "${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}CKAN:             ${BOLD}${ckanProjectURI}"
+                printf "${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Solr:             ${BOLD}${solrProjectURI}"
+                printf "${HAIR}${EOL}"
+                printf "${EOL}"
+
+            fi
+
+        fi
+
+    fi
+
+}
+
 function docker_init_command {
 
     if [[ $3 ]]; then
@@ -787,6 +831,10 @@ function attempt_docker_compose_commands {
 
                         fi
 
+                    elif [[ $3 == "info" ]]; then
+
+                        project_info $2
+
                     else
 
                         projectID=$2
@@ -874,7 +922,7 @@ function docker_command  {
 
             if [[ -x "$(command -v git)" ]]; then
 
-                if [ $(pgrep docker) ]; then
+                if [ $(pgrep docker | head -1) ]; then
 
                     if [[ $2 ]]; then
 
