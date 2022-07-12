@@ -550,7 +550,7 @@ function docker_init_command {
                     # pull docker-og repo into project directory
                     printf "${EOL}"
                     printf "${Cyan}${INDENT}Cloning ${REPO_URI} into project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    git clone --branch experimental/ports --single-branch https://github.com/open-data/docker-og.git $(pwd)/$projectID 2>&1 | sed 's/^/    /g'
+                    git clone https://github.com/open-data/docker-og.git $(pwd)/$projectID 2>&1 | sed 's/^/    /g'
                     if [[ $? -eq 0 ]]; then
                         printf "${Green}${INDENT}Clone ${REPO_URI} into $(pwd)/${projectID}: OK${NC}${EOL}"
                     else
