@@ -174,43 +174,25 @@ function generate_project_hosts_file {
 
     if [[ -d "/etc/hosts.d" ]]; then
 
-        if [[ -f "/etc/hosts.d/$1.conf" ]]; then
+        if [[ -f "/etc/hosts.d/og.conf" ]]; then
 
-            sudo rm -rf /etc/hosts.d/$1.conf | sed 's/^/    /g'
+            sudo rm -rf /etc/hosts.d/og.conf | sed 's/^/    /g'
 
         fi
 
-        sudo touch /etc/hosts.d/$1.conf | sed 's/^/    /g'
+        sudo touch /etc/hosts.d/og.conf | sed 's/^/    /g'
         if [[ $? -eq 0 ]]; then
-            printf "${Green}${INDENT}Generate project host file /etc/hosts.d/$1.conf: OK${NC}${EOL}"
+            printf "${Green}${INDENT}Generate project host file /etc/hosts.d/og.conf: OK${NC}${EOL}"
         else
-            printf "${Red}${INDENT}Generate project host file /etc/hosts.d/$1.conf: FAIL${NC}${EOL}"
+            printf "${Red}${INDENT}Generate project host file /etc/hosts.d/og.conf: FAIL${NC}${EOL}"
         fi
-        echo "" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
-        echo "127.0.0.1	open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
-        echo "127.0.0.1	registry.open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
-        echo "127.0.0.1	portal.open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
-        echo "127.0.0.1	solr.open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
-        echo "127.0.0.1	search.open-$1.local" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
-        echo "" | sudo tee -a /etc/hosts.d/$1.conf >/dev/null
-        sudo find /etc/hosts.d -type f | sudo cat $(grep .conf) | sudo tee /etc/hosts >/dev/null
-
-    fi
-
-}
-
-function delete_project_hosts_file {
-
-    regenerate_hosts_file
-
-    if [[ -d "/etc/hosts.d" ]]; then
-
-        sudo rm -rf /etc/hosts.d/$1.conf | sed 's/^/    /g'
-        if [[ $? -eq 0 ]]; then
-            printf "${Green}${INDENT}Delete project host file /etc/hosts.d/$1.conf: OK${NC}${EOL}"
-        else
-            printf "${Red}${INDENT}Delete project host file /etc/hosts.d/$1.conf: FAIL${NC}${EOL}"
-        fi
+        echo "" | sudo tee -a /etc/hosts.d/og.conf >/dev/null
+        echo "127.0.0.1	open.local" | sudo tee -a /etc/hosts.d/og.conf >/dev/null
+        echo "127.0.0.1	registry.open.local" | sudo tee -a /etc/hosts.d/og.conf >/dev/null
+        echo "127.0.0.1	portal.open.local" | sudo tee -a /etc/hosts.d/og.conf >/dev/null
+        echo "127.0.0.1	solr.open.local" | sudo tee -a /etc/hosts.d/og.conf >/dev/null
+        echo "127.0.0.1	search.open.local" | sudo tee -a /etc/hosts.d/og.conf >/dev/null
+        echo "" | sudo tee -a /etc/hosts.d/og.conf >/dev/null
         sudo find /etc/hosts.d -type f | sudo cat $(grep .conf) | sudo tee /etc/hosts >/dev/null
 
     fi
@@ -283,6 +265,218 @@ function get_working_directory_from_project_id {
 
 }
 
+function initialize_port_pool {
+
+    if [[ ! -d "$HOME/.docker-og.pools/ports" ]]; then
+
+        mkdir -p ~/.docker-og.pools/ports
+        touch ~/.docker-og.pools/ports/{57000..57999}.port
+
+    fi
+
+}
+
+function rent_port_number {
+
+    initialize_port_pool
+
+    portNumber=""
+
+    if [[ -f "$(pwd)/$1/.env" ]]; then
+
+        portNumber=$(ls ~/.docker-og.pools/ports | head -1 | sed -e "s/\.port$//")
+        echo -e "PORT=${portNumber}\n" >> $(pwd)/$1/.env
+
+        if [[ $? -eq 0 ]]; then
+
+            printf "${Green}${INDENT}Rent port number ${portNumber} for proxy: OK${NC}${EOL}"
+            rm $(ls ~/.docker-og.pools/ports/* | head -1)
+            if [[ $? -eq 0 ]]; then
+                printf "${Green}${INDENT}Remove port number ${portNumber} from pool: OK${NC}${EOL}"
+            else
+                printf "${Red}${INDENT}Remove port number ${portNumber} from pool: FAIL${NC}${EOL}"
+            fi
+
+        else
+
+            printf "${Red}${INDENT}Rent port number for proxy: FAIL${NC}${EOL}"
+
+        fi
+
+        portNumber=$(ls ~/.docker-og.pools/ports | head -1 | sed -e "s/\.port$//")
+        echo -e "DBPORT=${portNumber}\n" >> $(pwd)/$1/.env
+
+        if [[ $? -eq 0 ]]; then
+
+            printf "${Green}${INDENT}Rent port number ${portNumber} for postgres: OK${NC}${EOL}"
+            rm $(ls ~/.docker-og.pools/ports/* | head -1)
+            if [[ $? -eq 0 ]]; then
+                printf "${Green}${INDENT}Remove port number ${portNumber} from pool: OK${NC}${EOL}"
+            else
+                printf "${Red}${INDENT}Remove port number ${portNumber} from pool: FAIL${NC}${EOL}"
+            fi
+
+        else
+
+            printf "${Red}${INDENT}Rent port number for postgres: FAIL${NC}${EOL}"
+
+        fi
+        
+    fi
+
+}
+
+function release_port_number {
+
+    initialize_port_pool
+
+    if [[ -f "$1/.env" ]]; then
+
+        source $1/.env
+
+        if [[ ! -f "~/.docker-og.pools/ports/$PORT.port" ]]; then
+
+            touch ~/.docker-og.pools/ports/$PORT.port
+            if [[ $? -eq 0 ]]; then
+                printf "${Green}${INDENT}Release port number ${PORT} into pool: OK${NC}${EOL}"
+            else
+                printf "${Red}${INDENT}Release port number ${PORT} into pool: FAIL${NC}${EOL}"
+            fi
+
+        fi
+
+        if [[ ! -f "~/.docker-og.pools/ports/$DBPORT.port" ]]; then
+
+            touch ~/.docker-og.pools/ports/$DBPORT.port
+            if [[ $? -eq 0 ]]; then
+                printf "${Green}${INDENT}Release port number ${DBPORT} into pool: OK${NC}${EOL}"
+            else
+                printf "${Red}${INDENT}Release port number ${DBPORT} into pool: FAIL${NC}${EOL}"
+            fi
+
+        fi
+
+    fi
+
+}
+
+function initialize_octet_pool {
+
+    if [[ ! -d "$HOME/.docker-og.pools/octets" ]]; then
+
+        mkdir -p ~/.docker-og.pools/octets
+        touch ~/.docker-og.pools/octets/{1..254}.octet
+
+    fi
+
+}
+
+function rent_ip_octet {
+
+    initialize_octet_pool
+
+    octet=""
+
+    if [[ -f "$(pwd)/$1/.env" ]]; then
+
+        octet=$(ls ~/.docker-og.pools/octets | head -1 | sed -e "s/\.octet$//")
+        echo -e "OCTET=${octet}\n" >> $(pwd)/$1/.env
+
+        if [[ $? -eq 0 ]]; then
+
+            printf "${Green}${INDENT}Rent port number ${octet} for proxy: OK${NC}${EOL}"
+            rm $(ls ~/.docker-og.pools/octets/* | head -1)
+            if [[ $? -eq 0 ]]; then
+                printf "${Green}${INDENT}Remove octet ${octet} from pool: OK${NC}${EOL}"
+            else
+                printf "${Red}${INDENT}Remove octet ${octet} from pool: FAIL${NC}${EOL}"
+            fi
+
+        else
+
+            printf "${Red}${INDENT}Rent octet for docker network: FAIL${NC}${EOL}"
+
+        fi
+        
+    fi
+
+}
+
+function release_ip_octet {
+
+    initialize_octet_pool
+
+    if [[ -f "$1/.env" ]]; then
+
+        source $1/.env
+
+        if [[ ! -f "~/.docker-og.pools/octets/$OCTET.octet" ]]; then
+
+            touch ~/.docker-og.pools/octets/$OCTET.octet
+            if [[ $? -eq 0 ]]; then
+                printf "${Green}${INDENT}Release octet ${OCTET} into pool: OK${NC}${EOL}"
+            else
+                printf "${Red}${INDENT}Release octet ${OCTET} into pool: FAIL${NC}${EOL}"
+            fi
+
+        fi
+
+    fi
+
+}
+
+function project_info {
+
+    if [[ -d "$HOME/.docker-og.d" ]]; then
+
+        if [[ -f "$HOME/.docker-og.d/$1.conf" ]]; then
+
+            dir="$(head -n 1 $HOME/.docker-og.d/$1.conf)"
+
+            if [[ -f "$dir/.env" ]]; then
+
+                source $dir/.env
+
+                drupalProjectURI="$(echo '\e]8;;http://open.local:${PORT}\e\\open.local:${PORT}\e]8;;\e\\' | sed -e "s/\${PORT}/${PORT}/g")"
+                djangoProjectURI="$(echo '\e]8;;http://search.open.local:${PORT}\e\\search.open.local:${PORT}\e]8;;\e\\' | sed -e "s/\${PORT}/${PORT}/g")"
+                ckanProjectURI="$(echo '\e]8;;http://registry.open.local:${PORT}\e\\registry.open.local:${PORT}\e]8;;\e\\' | sed -e "s/\${PORT}/${PORT}/g")"
+                solrProjectURI="$(echo '\e]8;;http://solr.open.local:${PORT}\e\\solr.open.local:${PORT}\e]8;;\e\\' | sed -e "s/\${PORT}/${PORT}/g")"
+
+                databaseBaseURI="homestead:secret@open.local:${DBPORT}/"
+
+                printf "${EOL}"
+                printf "${INDENT}Project ID:           ${BOLD}${PROJECT_ID}${HAIR}${SPACER}"
+                printf "${INDENT}Working Directory:    ${BOLD}${dir}${HAIR}${SPACER}"
+                printf "${INDENT}Docker Network:       ${BOLD}${OCTET}.0.0.0/16${HAIR}${SPACER}"
+                printf "${INDENT}Web Port:             ${BOLD}${PORT}${HAIR}${SPACER}"
+                printf "${INDENT}Database Port:        ${BOLD}${DBPORT}${HAIR}${SPACER}"
+                printf "${INDENT}Web Addresses:${EOL}"
+                printf "${INDENT}${INDENT}Drupal:           ${BOLD}${drupalProjectURI}${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Registry:         ${BOLD}${ckanProjectURI}${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Search:           ${BOLD}${djangoProjectURI}${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Solr:             ${BOLD}${solrProjectURI}${HAIR}${EOL}"
+                printf "${EOL}"
+                printf "${INDENT}Database Addresses:${EOL}"
+                printf "${INDENT}${INDENT}Drupal:           ${BOLD}${databaseBaseURI}og_drupal_local__${PROJECT_ID}${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Drupal Test:      ${BOLD}${databaseBaseURI}og_drupal_local__${PROJECT_ID}__test${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Portal:           ${BOLD}${databaseBaseURI}og_ckan_portal_local__${PROJECT_ID}${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Portal Test:      ${BOLD}${databaseBaseURI}og_ckan_portal_local__${PROJECT_ID}__test${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Portal DS:        ${BOLD}${databaseBaseURI}og_ckan_portal_ds_local__${PROJECT_ID}${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Portal DS Test:   ${BOLD}${databaseBaseURI}og_ckan_portal_ds_local__${PROJECT_ID}__test${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Registry:         ${BOLD}${databaseBaseURI}og_ckan_registry_local__${PROJECT_ID}${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Registry Test:    ${BOLD}${databaseBaseURI}og_ckan_registry_local__${PROJECT_ID}__test${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Registry DS:      ${BOLD}${databaseBaseURI}og_ckan_registry_ds_local__${PROJECT_ID}${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Registry DS Test: ${BOLD}${databaseBaseURI}og_ckan_registry_ds_local__${PROJECT_ID}__test${HAIR}${EOL}"
+                printf "${EOL}"
+
+            fi
+
+        fi
+
+    fi
+
+}
+
 function docker_init_command {
 
     if [[ $3 ]]; then
@@ -324,8 +518,8 @@ function docker_init_command {
 
                     # create hosts file for the project ID
                     printf "${EOL}"
-                    printf "${Cyan}${INDENT}Generating new project host file ${ITALIC}${BOLD}/etc/hosts.d/$3.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${EOL}"
-                    generate_project_hosts_file $3
+                    printf "${Cyan}${INDENT}Generating host file ${ITALIC}${BOLD}/etc/hosts.d/og.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${EOL}"
+                    generate_project_hosts_file
 
                     # create docker networks for the project ID
                     printf "${EOL}"
@@ -356,8 +550,7 @@ function docker_init_command {
                     # pull docker-og repo into project directory
                     printf "${EOL}"
                     printf "${Cyan}${INDENT}Cloning ${REPO_URI} into project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    #git clone https://github.com/open-data/docker-og.git $(pwd)/$projectID 2>&1 | sed 's/^/    /g'
-                    git clone --branch develop --single-branch https://github.com/open-data/docker-og.git $(pwd)/$projectID 2>&1 | sed 's/^/    /g'
+                    git clone --branch experimental/ports --single-branch https://github.com/open-data/docker-og.git $(pwd)/$projectID 2>&1 | sed 's/^/    /g'
                     if [[ $? -eq 0 ]]; then
                         printf "${Green}${INDENT}Clone ${REPO_URI} into $(pwd)/${projectID}: OK${NC}${EOL}"
                     else
@@ -373,7 +566,17 @@ function docker_init_command {
                     else
                         printf "${Red}${INDENT}Create project environment file $(pwd)/$projectID/.env: FAIL${NC}${EOL}"
                     fi
-                    echo -e "PROJECT_ID=$projectID\nUSER_ID=$(id -u)\nGROUP_ID=$(id -g)" > $(pwd)/$projectID/.env
+                    echo -e "PROJECT_ID=$projectID\nUSER_ID=$(id -u)\nGROUP_ID=$(id -g)\n" > $(pwd)/$projectID/.env
+
+                    # renting some port numbers from the pool
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Renting port numbers for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    rent_port_number $3
+
+                    # renting an ip octet from the pool
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Renting ip octet for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    rent_ip_octet $3
 
                     # create .env.conf file and put project ID into it
                     printf "${EOL}"
@@ -477,11 +680,6 @@ function docker_destroy_command {
 
                 if [[ $confirmProjectDeletion == "true" ]]; then
 
-                    # delete hosts file for the project ID
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Removing project host file ${ITALIC}${BOLD}/etc/hosts.d/$3.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${EOL}"
-                    delete_project_hosts_file $3
-
                     # delete docker networks for the project ID
                     printf "${EOL}"
                     printf "${Cyan}${INDENT}Removing docker network for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
@@ -501,6 +699,16 @@ function docker_destroy_command {
                     else
                         printf "${Red}${INDENT}Delete docker images labeled with 'projectID=$projectID': FAIL${NC}${EOL}"
                     fi
+
+                    # release port numbers back into pool
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Releasing port numbers back into the pool for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    release_port_number $projectDir
+
+                    # release octet back into pool
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Releasing ip octet back into the pool for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                    release_ip_octet $projectDir
 
                     # delete directory for the project ID
                     printf "${EOL}"
@@ -631,6 +839,10 @@ function attempt_docker_compose_commands {
 
                         fi
 
+                    elif [[ $3 == "info" ]]; then
+
+                        project_info $2
+
                     else
 
                         projectID=$2
@@ -718,7 +930,7 @@ function docker_command  {
 
             if [[ -x "$(command -v git)" ]]; then
 
-                if [ $(pgrep docker) ]; then
+                if [ $(pgrep docker | head -1) ]; then
 
                     if [[ $2 ]]; then
 
