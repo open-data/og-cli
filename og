@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 #
 # Variables
@@ -43,6 +43,7 @@ function output_man {
     printf "${INDENT}${INDENT}          ${INDENT}           Usage: ${BOLD}og docker build${HAIR} [PROJECT ID]${SPACER}"
     printf "${INDENT}${INDENT}          ${INDENT}${BOLD}[PROJECT ID] install [container]${HAIR}           Executes the installaion script for the given PROJECT ID and container.${SPACER}"
     printf "${INDENT}${INDENT}          ${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID] install${HAIR} [drupal|django|ckan|ckanapi]${SPACER}"
+    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}[PROJECT ID] info${HAIR}                          Displays project info for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}          ${INDENT}${BOLD}[PROJECT ID] [${dockerComposeCommand} command]${HAIR}      Executes the ${dockerComposeCommand} command for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}          ${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID]${HAIR} [${dockerComposeCommand} command]${SPACER}"
     printf "${INDENT}${INDENT}          ${INDENT}${BOLD}help${HAIR}       Outputs the og docker manual.${SPACER}"
@@ -65,6 +66,7 @@ function output_docker_man {
     printf "${INDENT}${INDENT}           Usage: ${BOLD}og docker build${HAIR} [PROJECT ID]${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}[PROJECT ID] install [container]${HAIR}           Executes the installaion script for the given PROJECT ID and container.${SPACER}"
     printf "${INDENT}${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID] install${HAIR} [drupal|django|ckan|ckanapi]${SPACER}"
+    printf "${INDENT}${INDENT}${BOLD}[PROJECT ID] info${HAIR}                          Displays project info for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}[PROJECT ID] [${dockerComposeCommand} command]${HAIR}      Executes the ${dockerComposeCommand} command for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID]${HAIR} [${dockerComposeCommand} command]${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}help${HAIR}       Outputs this manual.${EOL}"
@@ -418,6 +420,150 @@ function release_ip_octet {
                 printf "${Green}${INDENT}Release octet ${OCTET} into pool: OK${NC}${EOL}"
             else
                 printf "${Red}${INDENT}Release octet ${OCTET} into pool: FAIL${NC}${EOL}"
+            fi
+
+        fi
+
+    fi
+
+}
+
+function does_local_git_repo_exist {
+
+    #TODO: write return for existing local repo in the project dir...
+    # $1 = project directory
+    # $2 = repository name (have to map names to local path)
+    echo "false"
+    return 0
+
+}
+
+function git_command {
+
+    if [[ -d "$HOME/.docker-og.d" ]]; then
+
+        if [[ -f "$HOME/.docker-og.d/$2.conf" ]]; then
+
+            projectID=$2
+            dir="$(head -n 1 $HOME/.docker-og.d/$2.conf)"
+
+            if [[ $4 ]]; then
+
+                gitSubCommand=$4
+                repo=$5
+                validRepos="opengov og gcweb_bootstrap ogc_search ckan ckanapi ckanext-canada ckanext-cloudstorage ckanext-dcat ckanext-extendedactivity ckanext-extractor ckanext-fluent ckanext-recombinant ckanext-scheming ckanext-security ckanext-validation ckanext-xloader ckantoolkit goodtables ckanext-wet-boew"
+
+                if [[ $gitSubCommand == "fetch" ]]; then
+
+                    if [[ "$validRepos all" == *"$repo"* ]]; then
+
+                        #TODO: write git fetch command function
+
+                        if [[ $repo == "all" ]]; then
+
+                            echo $gitSubCommand
+
+                        elif [[ $(does_local_git_repo_exist $dir $repo) != "false" ]];
+
+                            echo $gitSubCommand
+
+                        else
+
+                            printf "${EOL}"
+                            printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} repository does not exist locally for the project ${BOLD}${projectID}${HAIR}${Red}. Have you run the installation for that application?${HAIR}${NC}${SPACER}"
+
+                        fi
+
+                    else
+
+                        printf "${EOL}"
+                        printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} is not a recognized git repository in the og applications.${HAIR}${NC}${SPACER}"
+
+                    fi
+
+                elif [[ $gitSubCommand == "pull" ]]; then
+
+                    if [[ "$validRepos all" == *"$repo"* ]]; then
+
+                        #TODO: write git pull command function
+
+                        if [[ $repo == "all" ]]; then
+
+                            echo $gitSubCommand
+
+                        elif [[ $(does_local_git_repo_exist $dir $repo) != "false" ]];
+
+                            echo $gitSubCommand
+
+                        else
+
+                            printf "${EOL}"
+                            printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} repository does not exist locally for the project ${BOLD}${projectID}${HAIR}${Red}. Have you run the installation for that application?${HAIR}${NC}${SPACER}"
+
+                        fi
+
+                    else
+
+                        printf "${EOL}"
+                        printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} is not a recognized git repository in the og applications.${HAIR}${NC}${SPACER}"
+
+                    fi
+
+                elif [[ $gitSubCommand == "checkout" ]]; then
+
+                    if [[ "$validRepos" == *"$repo"* ]]; then
+
+                        #TODO: write git checkout command function
+
+                        if [[ $(does_local_git_repo_exist $dir $repo) != "false" ]];
+
+                            echo $gitSubCommand
+
+                        else
+
+                            printf "${EOL}"
+                            printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} repository does not exist locally for the project ${BOLD}${projectID}${HAIR}${Red}. Have you run the installation for that application?${HAIR}${NC}${SPACER}"
+
+                        fi
+
+                    else
+
+                        printf "${EOL}"
+                        printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} is not a recognized git repository in the og applications.${HAIR}${NC}${SPACER}"
+
+                    fi
+
+                elif [[ $gitSubCommand == "merge" ]]; then
+
+                    if [[ "$validRepos" == *"$repo"* ]]; then
+
+                        #TODO: write git merge command function
+
+                        if [[ $(does_local_git_repo_exist $dir $repo) != "false" ]];
+
+                            echo $gitSubCommand
+
+                        else
+
+                            printf "${EOL}"
+                            printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} repository does not exist locally for the project ${BOLD}${projectID}${HAIR}${Red}. Have you run the installation for that application?${HAIR}${NC}${SPACER}"
+
+                        fi
+
+                    else
+
+                        printf "${EOL}"
+                        printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} is not a recognized git repository in the og applications.${HAIR}${NC}${SPACER}"
+
+                    fi
+
+                else
+
+                    printf "${EOL}"
+                    printf "${Red}${INDENT}${BOLD}${gitSubCommand}${HAIR}${Red} is not a recognized git command in og-cli. For more advanced git usage, access the local repository directly.${HAIR}${NC}${SPACER}"
+
+                fi
+
             fi
 
         fi
@@ -843,6 +989,10 @@ function attempt_docker_compose_commands {
                     elif [[ $3 == "info" ]]; then
 
                         project_info $2
+
+                    elif [[ $3 == "git" ]]; then
+
+                        git_command "${@}"
 
                     else
 

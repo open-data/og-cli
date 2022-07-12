@@ -1,0 +1,73 @@
+#!/bin/bash
+
+_ogautocomplete()
+{
+
+    local currentArg previousArg ogArgs dockerArgs dockerProjectArgs appInstallArgs gitArgs gitSubArgs
+    COMPREPLY=()
+    currentArg="${COMP_WORDS[COMP_CWORD]}"
+    previousArg="${COMP_WORDS[COMP_CWORD-1]}"
+
+    ogArgs="docker update help"
+    dockerArgs="init destroy build help"
+    dockerProjects=""
+    dockerProjectArgs="install info git"
+    appInstallArgs="drupal django ckan ckanapi"
+    gitArgs="fetch pull checkout merge"
+    gitSubArgs="opengov og gcweb_bootstrap ogc_search ckan ckanapi ckanext-canada ckanext-cloudstorage ckanext-dcat ckanext-extendedactivity ckanext-extractor ckanext-fluent ckanext-recombinant ckanext-scheming ckanext-security ckanext-validation ckanext-xloader ckantoolkit goodtables ckanext-wet-boew"
+
+    if [[ -d "${HOME}/.docker-og.d" ]]; then
+
+        for FILE in ${HOME}/.docker-og.d/*; do
+
+            fileName="$(basename -- "$FILE")"
+            dockerArgs="$dockerArgs ${fileName%.*}"
+            dockerProjects="${fileName%.*} "
+
+        done
+
+    fi
+    
+    if [[ "$previousArg" == "og" ]]; then
+
+        COMPREPLY=( $(compgen -W "${ogArgs}" ${currentArg}) )
+        return 0
+
+    elif [[ "$previousArg" == "docker" ]]; then
+
+        COMPREPLY=( $(compgen -W "${dockerArgs}" ${currentArg}) )
+        return 0
+
+    elif [[ "$previousArg" == "git" ]]; then
+
+        COMPREPLY=( $(compgen -W "${gitArgs}" ${currentArg}) )
+        return 0
+
+    elif [[ "$previousArg" == "fetch" || "$previousArg" == "pull" ]]; then
+
+        COMPREPLY=( $(compgen -W "all ${gitSubArgs}" ${currentArg}) )
+        return 0
+
+    elif [[ "$previousArg" == "checkout" || "$previousArg" == "merge" ]]; then
+
+        COMPREPLY=( $(compgen -W "${gitSubArgs}" ${currentArg}) )
+        return 0
+
+    elif [[ "$dockerProjects" == *"${previousArg}"* ]]; then
+
+        COMPREPLY=( $(compgen -W "${dockerProjectArgs}" ${currentArg}) )
+        return 0
+
+    elif [[ "$previousArg" == "install" ]]; then
+
+        COMPREPLY=( $(compgen -W "${appInstallArgs}" ${currentArg}) )
+        return 0
+
+    else
+
+        return 0
+
+    fi
+
+}
+complete -o nosort -o nospace -F _ogautocomplete og
