@@ -8,12 +8,12 @@ _ogautocomplete()
     currentArg="${COMP_WORDS[COMP_CWORD]}"
     previousArg="${COMP_WORDS[COMP_CWORD-1]}"
 
-    ogArgs="docker update help"
+    ogArgs="docker update regen-hosts help"
     dockerArgs="init destroy build help"
     dockerProjects=""
     dockerProjectArgs="install info git"
     appInstallArgs="drupal django ckan ckanapi"
-    gitArgs="fetch pull checkout merge"
+    gitArgs="fetch pull exec"
     gitSubArgs="opengov og gcweb_bootstrap ogc_search ckan ckanapi ckanext-canada ckanext-cloudstorage ckanext-dcat ckanext-extendedactivity ckanext-extractor ckanext-fluent ckanext-recombinant ckanext-scheming ckanext-security ckanext-validation ckanext-xloader ckantoolkit goodtables ckanext-wet-boew"
 
     if [[ -d "${HOME}/.docker-og.d" ]]; then
@@ -48,7 +48,7 @@ _ogautocomplete()
         COMPREPLY=( $(compgen -W "all ${gitSubArgs}" ${currentArg}) )
         return 0
 
-    elif [[ "$previousArg" == "checkout" || "$previousArg" == "merge" ]]; then
+    elif [[ "$previousArg" == "exec" ]]; then
 
         COMPREPLY=( $(compgen -W "${gitSubArgs}" ${currentArg}) )
         return 0
