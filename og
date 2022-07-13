@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 #
 # Variables
@@ -26,28 +26,37 @@ PRE_BUILD_URI='\e]8;;https://github.com/open-data/docker-og#prebuild\e\\configur
 projectID=''
 projectDir='false'
 dockerComposeCommand='docker compose'
+validRepos="opengov og gcweb_bootstrap ogc_search ckan ckanapi ckanext-canada ckanext-cloudstorage ckanext-dcat ckanext-extendedactivity ckanext-extractor ckanext-fluent ckanext-recombinant ckanext-scheming ckanext-security ckanext-validation ckanext-xloader ckantoolkit goodtables ckanext-wet-boew"
 
 function output_man {
 
     printf "${EOL}"
     printf "${INDENT}Usage: ${BOLD}og${HAIR} COMMAND${SPACER}"
     printf "${INDENT}Commands:${EOL}"
-    printf "${INDENT}${INDENT}${BOLD}docker${HAIR}    Interfaces with the ${REPO_URI} repository.${SPACER}"
-    printf "${INDENT}${INDENT}          Usage: ${BOLD}og docker${HAIR} COMMAND${SPACER}"
-    printf "${INDENT}${INDENT}          Commands:${EOL}"
-    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}init${HAIR}       Initializes a new ${REPO_URI} instance into a directory with the provided PROJECT ID. The PROJECT ID must be lowercase and contain only alphanumeric characters.${SPACER}"
-    printf "${INDENT}${INDENT}          ${INDENT}           Usage: ${BOLD}og docker init${HAIR} [PROJECT ID]${SPACER}"
-    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}destroy${HAIR}    Deletes the project directory, docker images, and docker networks for the given PROJECT ID.${SPACER}"
-    printf "${INDENT}${INDENT}          ${INDENT}           Usage: ${BOLD}og docker destroy${HAIR} [PROJECT ID]${SPACER}"
-    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}build${HAIR}      Builds all of the docker containers for the given PROJECT ID.${SPACER}"
-    printf "${INDENT}${INDENT}          ${INDENT}           Usage: ${BOLD}og docker build${HAIR} [PROJECT ID]${SPACER}"
-    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}[PROJECT ID] install [container]${HAIR}           Executes the installaion script for the given PROJECT ID and container.${SPACER}"
-    printf "${INDENT}${INDENT}          ${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID] install${HAIR} [drupal|django|ckan|ckanapi]${SPACER}"
-    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}[PROJECT ID] [${dockerComposeCommand} command]${HAIR}      Executes the ${dockerComposeCommand} command for the given PROJECT ID.${SPACER}"
-    printf "${INDENT}${INDENT}          ${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID]${HAIR} [${dockerComposeCommand} command]${SPACER}"
-    printf "${INDENT}${INDENT}          ${INDENT}${BOLD}help${HAIR}       Outputs the og docker manual.${SPACER}"
-    printf "${INDENT}${INDENT}${BOLD}update${HAIR}    Updates the og-cli.${SPACER}"
-    printf "${INDENT}${INDENT}${BOLD}help${HAIR}      Outputs this manual.${EOL}"
+    printf "${INDENT}${INDENT}${BOLD}docker${HAIR}       Interfaces with the ${REPO_URI} repository.${SPACER}"
+    printf "${INDENT}${INDENT}             Usage: ${BOLD}og docker${HAIR} COMMAND${SPACER}"
+    printf "${INDENT}${INDENT}             Commands:${EOL}"
+    printf "${INDENT}${INDENT}             ${INDENT}${BOLD}init${HAIR}       Initializes a new ${REPO_URI} instance into a directory with the provided PROJECT ID. The PROJECT ID must be lowercase and contain only alphanumeric characters.${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}           Usage: ${BOLD}og docker init${HAIR} [PROJECT ID]${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}${BOLD}destroy${HAIR}    Deletes the project directory, docker images, and docker networks for the given PROJECT ID.${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}           Usage: ${BOLD}og docker destroy${HAIR} [PROJECT ID]${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}${BOLD}build${HAIR}      Builds all of the docker containers for the given PROJECT ID.${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}           Usage: ${BOLD}og docker build${HAIR} [PROJECT ID]${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}${BOLD}[PROJECT ID] install [container]${HAIR}           Executes the installaion script for the given PROJECT ID and container.${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID] install${HAIR} [drupal|django|ckan|ckanapi]${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}${BOLD}[PROJECT ID] git [command]${HAIR}                 Runs git tooling for the given PROJECT ID.${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID] git${HAIR} COMMAND${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}                                           Commands:${EOL}"
+    printf "${INDENT}${INDENT}             ${INDENT}                                           ${INDENT}${BOLD}fetch${HAIR} [all|repo-name]                    Executes git fetch for the given repo-name.${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}                                           ${INDENT}${BOLD}pull${HAIR} [all|repo-name]                     Executes git pull for the given repo-name.${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}                                           ${INDENT}${BOLD}exec${HAIR} [repo-name] [git sub-command]       Executes provided git sub-command for the given repo-name.${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}${BOLD}[PROJECT ID] info${HAIR}                          Displays project info for the given PROJECT ID.${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}${BOLD}[PROJECT ID] [${dockerComposeCommand} command]${HAIR}      Executes the ${dockerComposeCommand} command for the given PROJECT ID.${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID]${HAIR} [${dockerComposeCommand} command]${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}${BOLD}help${HAIR}       Outputs the og docker manual.${SPACER}"
+    printf "${INDENT}${INDENT}${BOLD}regen-hosts${HAIR}   Regenerates the hosts file /etc/hosts.${SPACER}"
+    printf "${INDENT}${INDENT}${BOLD}update${HAIR}        Updates the og-cli.${SPACER}"
+    printf "${INDENT}${INDENT}${BOLD}help${HAIR}          Outputs this manual.${EOL}"
     printf "${EOL}"
 
 }
@@ -65,6 +74,13 @@ function output_docker_man {
     printf "${INDENT}${INDENT}           Usage: ${BOLD}og docker build${HAIR} [PROJECT ID]${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}[PROJECT ID] install [container]${HAIR}           Executes the installaion script for the given PROJECT ID and container.${SPACER}"
     printf "${INDENT}${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID] install${HAIR} [drupal|django|ckan|ckanapi]${SPACER}"
+    printf "${INDENT}${INDENT}${BOLD}[PROJECT ID] git [command]${HAIR}                 Runs git tooling for the given PROJECT ID.${SPACER}"
+    printf "${INDENT}${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID] git${HAIR} COMMAND${SPACER}"
+    printf "${INDENT}${INDENT}                                           Commands:${EOL}"
+    printf "${INDENT}${INDENT}                                           ${INDENT}${BOLD}fetch${HAIR} [all|repo-name]                    Executes git fetch for the given repo-name.${SPACER}"
+    printf "${INDENT}${INDENT}                                           ${INDENT}${BOLD}pull${HAIR} [all|repo-name]                     Executes git pull for the given repo-name.${SPACER}"
+    printf "${INDENT}${INDENT}                                           ${INDENT}${BOLD}exec${HAIR} [repo-name] [git sub-command]       Executes provided git sub-command for the given repo-name.${SPACER}"
+    printf "${INDENT}${INDENT}${BOLD}[PROJECT ID] info${HAIR}                          Displays project info for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}[PROJECT ID] [${dockerComposeCommand} command]${HAIR}      Executes the ${dockerComposeCommand} command for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}                                           Usage: ${BOLD}og docker [PROJECT ID]${HAIR} [${dockerComposeCommand} command]${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}help${HAIR}       Outputs this manual.${EOL}"
@@ -99,7 +115,7 @@ function output_docker_build_man {
 function output_docker_compose_man {
 
     printf "${EOL}"
-    printf "${INDENT}Usage: ${BOLD}og docker [PROJECT ID]${HAIR} [${dockerComposeCommand} command]${EOL}"
+    printf "${INDENT}Usage: ${BOLD}og docker [PROJECT ID]${HAIR} [COMMAND (install|git|info|${dockerComposeCommand} command)]${EOL}"
     printf "${EOL}"
 
 }
@@ -108,6 +124,14 @@ function output_docker_install_man {
 
     printf "${EOL}"
     printf "${INDENT}Usage: ${BOLD}og docker [PROJECT ID] install${HAIR} [drupal|django|ckan|ckanapi]${EOL}"
+    printf "${EOL}"
+
+}
+
+function outpur_docker_git_man {
+
+    printf "${EOL}"
+    printf "${INDENT}Usage: ${BOLD}og docker [PROJECT ID] git${HAIR} [COMMAND (fetch|pull|exec)] [REPO (all|$(echo ${validRepos} | sed 's/ /|/g'))]${EOL}"
     printf "${EOL}"
 
 }
@@ -421,6 +445,519 @@ function release_ip_octet {
             fi
 
         fi
+
+    fi
+
+}
+
+function does_local_git_repo_exist {
+
+    baseDir=$1
+    repo=$2
+    ckanInstall="registry"
+
+    if [[ "$3" ]]; then
+
+        ckanInstall=$3
+
+    fi
+
+    case $repo in
+
+        ("opengov")
+            if [[ -d $baseDir/drupal/html ]]; then
+                echo "$baseDir/drupal"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("og")
+            if [[ -d $baseDir/drupal/html/profiles/og/modules ]]; then
+                echo "$baseDir/drupal/html/profiles/og"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("gcweb_bootstrap")
+            if [[ -d $baseDir/drupal/html/themes/custom/gcweb/templates ]]; then
+                echo "$baseDir/drupal/html/themes/custom/gcweb"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ogc_search")
+            if [[ -d $baseDir/django/src/ogc-search/ogc_search ]]; then
+                echo "$baseDir/django/src/ogc-search"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckan")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckan/ckan ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckan"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanapi")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanapi/ckanapi ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckanapi"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanext-canada")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-canada/ckanext ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckanext-canada"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanext-cloudstorage")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-cloudstorage/ckanext ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckanext-cloudstorage"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanext-dcat")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-dcat/ckanext ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckanext-dcat"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanext-extendedactivity")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-extendedactivity/ckanext ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckanext-extendedactivity"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanext-extractor")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-extractor/ckanext ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckanext-extractor"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanext-fluent")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-fluent/ckanext ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckanext-fluent"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanext-recombinant")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-recombinant/ckanext ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckanext-recombinant"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanext-scheming")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-scheming/ckanext ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckanext-scheming"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanext-security")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-security/ckanext ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckanext-security"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanext-validation")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-validation/ckanext ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckanext-validation"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanext-xloader")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-xloader/ckanext ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckanext-xloader"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckantoolkit")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckantoolkit/ckantoolkit ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckantoolkit"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("goodtables")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/goodtables/goodtables ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/goodtables"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanext-wet-boew")
+            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-wet-boew/ckanext ]]; then
+                echo "$baseDir/ckan/$ckanInstall/src/ckanext-wet-boew"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+    esac
+
+    echo "false"
+    return 0
+
+}
+
+function execute_git_command {
+
+    dir=$1
+    repo=$2
+    command=$3
+
+    if [[ $repo == "all" ]]; then
+
+        repoArray=($validRepos)
+        for i in "${repoArray[@]}"
+            do
+            :
+                if [[ $i == "opengov" || $i == "og" || $i == "gcweb_bootstrap" || $i == "ogc_search" ]]; then
+                    if [[ $(does_local_git_repo_exist $dir $i) != "false" ]]; then
+                        localRepo="$(does_local_git_repo_exist $dir $i)"
+                        cd $localRepo
+                        localBranch="$(git rev-parse --abbrev-ref HEAD)"
+                        if [[ $command == "fetch" ]]; then
+                            printf "${EOL}"
+                            printf "${Cyan}${INDENT}Fetching ${i} (${localBranch})...${NC}${EOL}"
+                            git fetch
+                            if [[ "$(git status -s -u no)" ]]; then
+                                git status
+                            else
+                                printf "${Cyan}${INDENT}No new commits found for ${i} (${localBranch})...${NC}${EOL}"
+                            fi
+                        elif [[ $command == "pull" ]]; then
+                            printf "${EOL}"
+                            printf "${Cyan}${INDENT}Pulling ${i} (${localBranch})...${NC}${EOL}"
+                            git pull
+                        fi
+                    fi
+                else
+                    if [[ $(does_local_git_repo_exist $dir $i registry) != "false" ]]; then
+                        localRepo="$(does_local_git_repo_exist $dir $i registry)"
+                        cd $localRepo
+                        localBranch="$(git rev-parse --abbrev-ref HEAD)"
+                        if [[ $command == "fetch" ]]; then
+                            printf "${EOL}"
+                            printf "${Cyan}${INDENT}Fetching ${i} (${localBranch}) (registry)...${NC}${EOL}"
+                            git fetch
+                            if [[ "$(git status -s -u no)" ]]; then
+                                git status
+                            else
+                                printf "${Cyan}${INDENT}No new commits found for ${i} (${localBranch}) (registry)...${NC}${EOL}"
+                            fi
+                        elif [[ $command == "pull" ]]; then
+                            printf "${EOL}"
+                            printf "${Cyan}${INDENT}Pulling ${i} (${localBranch}) (registry)...${NC}${EOL}"
+                            git pull
+                        fi
+                    fi
+                    if [[ $(does_local_git_repo_exist $dir $i portal) != "false" ]]; then
+                        localRepo="$(does_local_git_repo_exist $dir $i portal)"
+                        cd $localRepo
+                        localBranch="$(git rev-parse --abbrev-ref HEAD)"
+                        if [[ $command == "fetch" ]]; then
+                            printf "${EOL}"
+                            printf "${Cyan}${INDENT}Fetching ${i} (${localBranch}) (portal)...${NC}${EOL}"
+                            git fetch
+                            if [[ "$(git status -s -u no)" ]]; then
+                                git status
+                            else
+                                printf "${Cyan}${INDENT}No new commits found for ${i} (${localBranch}) (portal)...${NC}${EOL}"
+                            fi
+                        elif [[ $command == "pull" ]]; then
+                            printf "${EOL}"
+                            printf "${Cyan}${INDENT}Pulling ${i} (${localBranch}) (portal)...${NC}${EOL}"
+                            git pull
+                        fi
+                    fi
+                fi
+            done
+
+    else
+
+        if [[ $repo == "opengov" || $repo == "og" || $repo == "gcweb_bootstrap" || $repo == "ogc_search" ]]; then
+
+            if [[ $(does_local_git_repo_exist $dir $repo) != "false" ]]; then
+
+                localRepo="$(does_local_git_repo_exist $dir $repo)"
+                cd $localRepo
+                localBranch="$(git rev-parse --abbrev-ref HEAD)"
+
+                if [[ $command == "fetch" ]]; then
+
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Fetching ${repo} (${localBranch})...${NC}${EOL}"
+                    git fetch
+                    if [[ "$(git status -s -u no)" ]]; then
+                        git status
+                    else
+                        printf "${Cyan}${INDENT}No new commits found for ${repo} (${localBranch})...${NC}${EOL}"
+                    fi
+
+                elif [[ $command == "pull" ]]; then
+
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Pulling ${repo} (${localBranch})...${NC}${EOL}"
+                    git pull
+
+                elif [[ $command == "exec" ]]; then
+
+                    gitCommand="${@:4}"
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Executing git ${gitCommand} for ${repo} (${localBranch})...${NC}${EOL}"
+                    git $gitCommand
+
+                fi
+
+            else
+
+                printf "${EOL}"
+                printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} repository does not exist locally for the project ${BOLD}${projectID}${HAIR}${Red}. Have you run the installation for that application?${HAIR}${NC}${EOL}"
+
+            fi
+
+        else
+
+            if [[ $(does_local_git_repo_exist $dir $repo registry) != "false" ]]; then
+
+                localRepo="$(does_local_git_repo_exist $dir $repo registry)"
+                cd $localRepo
+                localBranch="$(git rev-parse --abbrev-ref HEAD)"
+
+                if [[ $command == "fetch" ]]; then
+
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Fetching ${repo} (${localBranch}) (registry)...${NC}${EOL}"
+                    git fetch
+                    if [[ "$(git status -s -u no)" ]]; then
+                        git status
+                    else
+                        printf "${Cyan}${INDENT}No new commits found for ${repo} (${localBranch}) (registry)...${NC}${EOL}"
+                    fi
+
+                elif [[ $command == "pull" ]]; then
+
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Pulling ${repo} (${localBranch}) (registry)...${NC}${EOL}"
+                    git pull
+
+                elif [[ $command == "exec" ]]; then
+
+                    gitCommand="${@:4}"
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Executing git ${gitCommand} for ${repo} (${localBranch}) (registry)...${NC}${EOL}"
+                    git $gitCommand
+
+                fi
+
+            else
+
+                printf "${EOL}"
+                printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} repository does not exist locally for the project ${BOLD}${projectID}${HAIR}${Red}. Have you run the installation for that application? (extra info: not found in CKAN registry)${HAIR}${NC}${EOL}"
+
+            fi
+
+            if [[ $(does_local_git_repo_exist $dir $repo portal) != "false" ]]; then
+
+                localRepo="$(does_local_git_repo_exist $dir $repo portal)"
+                cd $localRepo
+                localBranch="$(git rev-parse --abbrev-ref HEAD)"
+
+                if [[ $command == "fetch" ]]; then
+
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Fetching ${repo} (${localBranch}) (portal)...${NC}${EOL}"
+                    git fetch
+                    if [[ "$(git status -s -u no)" ]]; then
+                        git status
+                    else
+                        printf "${Cyan}${INDENT}No new commits found for ${repo} (${localBranch}) (portal)...${NC}${EOL}"
+                    fi
+
+                elif [[ $command == "pull" ]]; then
+
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Pulling ${repo} (${localBranch}) (portal)...${NC}${EOL}"
+                    git pull
+
+                elif [[ $command == "exec" ]]; then
+
+                    gitCommand="${@:4}"
+                    printf "${EOL}"
+                    printf "${Cyan}${INDENT}Executing git ${gitCommand} for ${repo} (${localBranch}) (portal)...${NC}${EOL}"
+                    git $gitCommand
+
+                fi
+
+            else
+
+                printf "${EOL}"
+                printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} repository does not exist locally for the project ${BOLD}${projectID}${HAIR}${Red}. Have you run the installation for that application? (extra info: not found in CKAN portal)${HAIR}${NC}${EOL}"
+
+            fi
+
+        fi
+
+    fi
+
+    printf "${EOL}"
+
+}
+
+function git_command {
+
+    errorMessage="false"
+
+    if [[ -d "$HOME/.docker-og.d" ]]; then
+
+        if [[ -f "$HOME/.docker-og.d/$2.conf" ]]; then
+
+            projectID=$2
+            dir="$(head -n 1 $HOME/.docker-og.d/$2.conf)"
+
+            if [[ $4 ]]; then
+
+                gitSubCommand=$4
+                repo=$5
+
+                if [[ $repo ]]; then
+
+                    if [[ $gitSubCommand == "fetch" ]]; then
+
+                        errorMessage="true"
+
+                        if [[ "$validRepos all" == *"$repo"* ]]; then
+
+                            errorMessage="false"
+                            execute_git_command $dir $repo "fetch"
+
+                        fi
+
+                    elif [[ $gitSubCommand == "pull" ]]; then
+
+                        errorMessage="true"
+
+                        if [[ "$validRepos all" == *"$repo"* ]]; then
+
+                            errorMessage="false"
+                            execute_git_command $dir $repo "pull"
+
+                        fi
+
+                    elif [[ $gitSubCommand == "exec" ]]; then
+
+                        errorMessage="true"
+
+                        if [[ "$validRepos" == *"$repo"* ]]; then
+
+                            errorMessage="false"
+                            execute_git_command $dir $repo "exec" "${@:6}"
+
+                        fi
+
+                    else
+
+                        printf "${EOL}"
+                        printf "${Red}${INDENT}${BOLD}${gitSubCommand}${HAIR}${Red} is not a recognized git command in og-cli. For more advanced git usage, access the local repository directly.${HAIR}${NC}${SPACER}"
+
+                    fi
+
+                else
+
+                    printf "${EOL}"
+                    printf "${Yellow}${INDENT}Please supply a REPO${NC}${EOL}"
+                    outpur_docker_git_man
+
+                fi
+
+            else
+
+                printf "${EOL}"
+                printf "${Yellow}${INDENT}Please supply a COMMAND${NC}${EOL}"
+                outpur_docker_git_man
+
+            fi
+
+        fi
+
+    fi
+
+    if [[ $errorMessage != "false" ]]; then
+
+        printf "${EOL}"
+        printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} is not a recognized git repository in the og applications.${HAIR}${NC}${SPACER}"
 
     fi
 
@@ -844,6 +1381,10 @@ function attempt_docker_compose_commands {
 
                         project_info $2
 
+                    elif [[ $3 == "git" ]]; then
+
+                        git_command "${@}"
+
                     else
 
                         projectID=$2
@@ -857,7 +1398,7 @@ function attempt_docker_compose_commands {
                 else 
 
                     printf "${EOL}"
-                    printf "${Yellow}${INDENT}Missing ${dockerComposeCommand} COMMAND${NC}${EOL}"
+                    printf "${Yellow}${INDENT}Missing COMMAND${NC}${EOL}"
                     output_docker_compose_man
 
                 fi
@@ -1044,6 +1585,13 @@ if [[ $1 ]]; then
     elif [[ $1 == "update" ]]; then
 
         update_command
+
+    elif [[ $1 == "regen-hosts" ]]; then
+
+        printf "${EOL}"
+        printf "${Cyan}${INDENT}Generating host file ${ITALIC}${BOLD}/etc/hosts.d/og.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${EOL}"
+        generate_project_hosts_file
+        printf "${EOL}"
 
     elif [[ $1 == "help"  ]]; then
 
