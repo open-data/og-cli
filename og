@@ -692,7 +692,7 @@ function execute_git_command {
                             printf "${EOL}"
                             printf "${Cyan}${INDENT}Fetching ${i} (${localBranch})...${NC}${EOL}"
                             git fetch
-                            if [[ "$(git status -s -u no)" ]]; then
+                            if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
                                 git status
                             else
                                 printf "${Cyan}${INDENT}No new commits found for ${i} (${localBranch})...${NC}${EOL}"
@@ -712,7 +712,7 @@ function execute_git_command {
                             printf "${EOL}"
                             printf "${Cyan}${INDENT}Fetching ${i} (${localBranch}) (registry)...${NC}${EOL}"
                             git fetch
-                            if [[ "$(git status -s -u no)" ]]; then
+                            if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
                                 git status
                             else
                                 printf "${Cyan}${INDENT}No new commits found for ${i} (${localBranch}) (registry)...${NC}${EOL}"
@@ -731,7 +731,7 @@ function execute_git_command {
                             printf "${EOL}"
                             printf "${Cyan}${INDENT}Fetching ${i} (${localBranch}) (portal)...${NC}${EOL}"
                             git fetch
-                            if [[ "$(git status -s -u no)" ]]; then
+                            if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
                                 git status
                             else
                                 printf "${Cyan}${INDENT}No new commits found for ${i} (${localBranch}) (portal)...${NC}${EOL}"
@@ -760,7 +760,7 @@ function execute_git_command {
                     printf "${EOL}"
                     printf "${Cyan}${INDENT}Fetching ${repo} (${localBranch})...${NC}${EOL}"
                     git fetch
-                    if [[ "$(git status -s -u no)" ]]; then
+                    if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
                         git status
                     else
                         printf "${Cyan}${INDENT}No new commits found for ${repo} (${localBranch})...${NC}${EOL}"
@@ -801,7 +801,7 @@ function execute_git_command {
                     printf "${EOL}"
                     printf "${Cyan}${INDENT}Fetching ${repo} (${localBranch}) (registry)...${NC}${EOL}"
                     git fetch
-                    if [[ "$(git status -s -u no)" ]]; then
+                    if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
                         git status
                     else
                         printf "${Cyan}${INDENT}No new commits found for ${repo} (${localBranch}) (registry)...${NC}${EOL}"
@@ -840,7 +840,7 @@ function execute_git_command {
                     printf "${EOL}"
                     printf "${Cyan}${INDENT}Fetching ${repo} (${localBranch}) (portal)...${NC}${EOL}"
                     git fetch
-                    if [[ "$(git status -s -u no)" ]]; then
+                    if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
                         git status
                     else
                         printf "${Cyan}${INDENT}No new commits found for ${repo} (${localBranch}) (portal)...${NC}${EOL}"
@@ -1553,7 +1553,7 @@ function update_command {
         cd $(dirname "$(which og)")
         git fetch
 
-        if [[ "$(git status -s -u no)" ]]; then
+        if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
 
             printf "${Cyan}${INDENT}Pulling latest og-cli changes...${NC}${EOL}"
             git pull
