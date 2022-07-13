@@ -749,7 +749,7 @@ function execute_git_command {
                 fi
             done
 
-        if [[ gitCommandCount == 0 ]]; then
+        if [[ $gitCommandCount == 0 ]]; then
 
             printf "${EOL}"
             printf "${Red}${INDENT}No local repositories were found for the project ${BOLD}${projectID}${HAIR}${Red}. Have you run the installation for any applications?${HAIR}${NC}${EOL}"
