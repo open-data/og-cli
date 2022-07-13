@@ -680,11 +680,13 @@ function execute_git_command {
     if [[ $repo == "all" ]]; then
 
         repoArray=($validRepos)
+        gitCommandCount=0
         for i in "${repoArray[@]}"
             do
             :
                 if [[ $i == "opengov" || $i == "og" || $i == "gcweb_bootstrap" || $i == "ogc_search" ]]; then
                     if [[ $(does_local_git_repo_exist $dir $i) != "false" ]]; then
+                        let gitCommandCount++
                         localRepo="$(does_local_git_repo_exist $dir $i)"
                         cd $localRepo
                         localBranch="$(git rev-parse --abbrev-ref HEAD)"
@@ -705,6 +707,7 @@ function execute_git_command {
                     fi
                 else
                     if [[ $(does_local_git_repo_exist $dir $i registry) != "false" ]]; then
+                        let gitCommandCount++
                         localRepo="$(does_local_git_repo_exist $dir $i registry)"
                         cd $localRepo
                         localBranch="$(git rev-parse --abbrev-ref HEAD)"
@@ -724,6 +727,7 @@ function execute_git_command {
                         fi
                     fi
                     if [[ $(does_local_git_repo_exist $dir $i portal) != "false" ]]; then
+                        let gitCommandCount++
                         localRepo="$(does_local_git_repo_exist $dir $i portal)"
                         cd $localRepo
                         localBranch="$(git rev-parse --abbrev-ref HEAD)"
@@ -744,6 +748,13 @@ function execute_git_command {
                     fi
                 fi
             done
+
+        if [[ gitCommandCount == 0 ]]; then
+
+            printf "${EOL}"
+            printf "${Red}${INDENT}No local repositories were found for the project ${BOLD}${projectID}${HAIR}${Red}. Have you run the installation for any applications?${HAIR}${NC}${EOL}"
+
+        fi
 
     else
 
