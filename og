@@ -1460,6 +1460,29 @@ function attempt_docker_compose_commands {
 
 }
 
+function boot_docker_command {
+
+        printf "${EOL}"
+        printf "${Cyan}${INDENT}Setting correct permissions for docker socket. Maybe prompt for admin password...${NC}${EOL}"
+        sudo chmod 666 /var/run/docker.sock
+        if [[ $? -eq 0 ]]; then
+            printf "${Green}${INDENT}Set permissions for /var/run/docker.sock: OK${NC}${EOL}"
+        else
+            printf "${Red}${INDENT}Set permissions for /var/run/docker.sock: FAIL${NC}${EOL}"
+        fi
+        printf "${Cyan}${INDENT}Generating host file ${ITALIC}${BOLD}/etc/hosts.d/og.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${EOL}"
+        generate_project_hosts_file
+        printf "${Cyan}${INDENT}Restarting docker service. Maybe prompt for admin password...${NC}${EOL}"
+        sudo service docker restart
+        if [[ $? -eq 0 ]]; then
+            printf "${Green}${INDENT}Restart docker service: OK${NC}${EOL}"
+        else
+            printf "${Red}${INDENT}Restart docker service: FAIL${NC}${EOL}"
+        fi
+        printf "${EOL}"
+
+}
+
 function docker_command  {
 
     if [[ -x "$(command -v docker)" ]]; then
@@ -1501,6 +1524,10 @@ function docker_command  {
                         elif [[ $2 == "destroy" ]]; then
 
                             docker_destroy_command "$@"
+
+                        elif [[ $2 == "boot" ]]; then
+
+                            boot_docker_command
 
                         elif [[ $2 == "build" ]]; then
 

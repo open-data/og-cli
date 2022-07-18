@@ -9,7 +9,7 @@ _ogautocomplete()
     previousArg="${COMP_WORDS[COMP_CWORD-1]}"
 
     ogArgs="docker update regen-hosts help"
-    dockerArgs="init destroy build help"
+    dockerArgs="boot init destroy build help"
     dockerProjects=""
     dockerProjectArgs="install info git"
     appInstallArgs="drupal django ckan ckanapi"
