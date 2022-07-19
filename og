@@ -1488,7 +1488,7 @@ function docker_command  {
     if [[ -x "$(command -v docker)" ]]; then
 
         # Gets the correct docker compose command (docker compose being the newest and docker-compose being older)
-        if [[ -x "$(command -v 'docker compose')" ]]; then
+        if [[ "$(docker compose version)" ]]; then
 
             dockerComposeCommand='docker compose'
 
