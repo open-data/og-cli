@@ -9,7 +9,7 @@ _ogautocomplete()
     previousArg="${COMP_WORDS[COMP_CWORD-1]}"
 
     ogArgs="docker update regen-hosts help"
-    dockerArgs="boot init destroy build help"
+    dockerArgs="boot init destroy clone build help"
     dockerProjects=""
     dockerProjectArgs="install info git"
     appInstallArgs="drupal django ckan ckanapi"
@@ -22,48 +22,62 @@ _ogautocomplete()
 
             fileName="$(basename -- "$FILE")"
             dockerArgs="$dockerArgs ${fileName%.*}"
-            dockerProjects="${fileName%.*} "
+            dockerProjects="$dockerProjects ${fileName%.*}"
 
         done
 
     fi
     
-    if [[ "$previousArg" == "og" ]]; then
+    if [[ "$previousArg" == "og" ]]; then # show `og` hints
 
         COMPREPLY=( $(compgen -W "${ogArgs}" ${currentArg}) )
         return 0
 
-    elif [[ "$previousArg" == "docker" ]]; then
+    elif [[ "$previousArg" == "docker" ]]; then # show `og docker` hints
 
         COMPREPLY=( $(compgen -W "${dockerArgs}" ${currentArg}) )
         return 0
 
-    elif [[ "$previousArg" == "git" ]]; then
+    elif [[ "$previousArg" == "clone" || "$previousArg" == "destroy" ]]; then # show `og docker clone` and `og docker destroy` hints 
+
+        COMPREPLY=( $(compgen -W "${dockerProjects}" ${currentArg}) )
+        return 0
+
+    elif [[ "${COMP_WORDS[COMP_CWORD-2]}" == "clone" && "$dockerProjects" == *"${previousArg}"* ]]; then # show `og docker clone [PROJECT ID]` hints
+
+        COMPREPLY=( $(compgen -W "${dockerProjects}" ${currentArg}) )
+        return 0
+
+    elif [[ "${COMP_WORDS[COMP_CWORD-3]}" == "clone" && "$dockerProjects" == *"${previousArg}"* ]]; then # stop `og docker clone` hints after two PROJECT IDs
+
+        return 0
+
+    elif [[ "$previousArg" == "git" ]]; then # show `og docker [PROJECT ID] git` hints
 
         COMPREPLY=( $(compgen -W "${gitArgs}" ${currentArg}) )
         return 0
 
-    elif [[ "$previousArg" == "fetch" || "$previousArg" == "pull" ]]; then
+    elif [[ "$previousArg" == "fetch" || "$previousArg" == "pull" ]]; then # show `og docker [PROJECT ID] git fetch|pull` hints
 
         COMPREPLY=( $(compgen -W "all ${gitSubArgs}" ${currentArg}) )
         return 0
 
-    elif [[ "$previousArg" == "exec" ]]; then
+    elif [[ "$previousArg" == "exec" ]]; then # show `og docker [PROJECT ID] git exec` hints
 
         COMPREPLY=( $(compgen -W "${gitSubArgs}" ${currentArg}) )
         return 0
 
-    elif [[ "$dockerProjects" == *"${previousArg}"* ]]; then
+    elif [[ "$dockerProjects" == *"${previousArg}"* ]]; then # show `og docker [PROJECT ID]` hints
 
         COMPREPLY=( $(compgen -W "${dockerProjectArgs}" ${currentArg}) )
         return 0
 
-    elif [[ "$previousArg" == "install" ]]; then
+    elif [[ "$previousArg" == "install" ]]; then # show `og docker [PROJECT ID] install` hints
 
         COMPREPLY=( $(compgen -W "${appInstallArgs}" ${currentArg}) )
         return 0
 
-    else
+    else # return no error otherwise
 
         return 0
 

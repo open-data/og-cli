@@ -41,6 +41,8 @@ function output_man {
     printf "${INDENT}${INDENT}             ${INDENT}           Usage: ${BOLD}og docker init${HAIR} [PROJECT ID]${SPACER}"
     printf "${INDENT}${INDENT}             ${INDENT}${BOLD}destroy${HAIR}    Deletes the project directory, docker images, and docker networks for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}             ${INDENT}           Usage: ${BOLD}og docker destroy${HAIR} [PROJECT ID]${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}${BOLD}clone${HAIR}      Clones the source project directory, databases, and solr indices for the given source PROJECT ID to the new target PROJECT ID.${SPACER}"
+    printf "${INDENT}${INDENT}             ${INDENT}           Usage: ${BOLD}og docker clone${HAIR} [SOURCE PROJECT ID] [TARGET PROJECT ID]${SPACER}"
     printf "${INDENT}${INDENT}             ${INDENT}${BOLD}build${HAIR}      Builds all of the docker containers for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}             ${INDENT}           Usage: ${BOLD}og docker build${HAIR} [PROJECT ID]${SPACER}"
     printf "${INDENT}${INDENT}             ${INDENT}${BOLD}[PROJECT ID] install [container]${HAIR}           Executes the installaion script for the given PROJECT ID and container.${SPACER}"
@@ -72,6 +74,8 @@ function output_docker_man {
     printf "${INDENT}${INDENT}           Usage: ${BOLD}og docker init${HAIR} [PROJECT ID]${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}destroy${HAIR}    Deletes the project directory, docker images, and docker networks for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}           Usage: ${BOLD}og docker destroy${HAIR} [PROJECT ID]${SPACER}"
+    printf "${INDENT}${INDENT}${BOLD}clone${HAIR}      Clones the source project directory, databases, and solr indices for the given source PROJECT ID to the new target PROJECT ID.${SPACER}"
+    printf "${INDENT}${INDENT}           Usage: ${BOLD}og docker clone${HAIR} [SOURCE PROJECT ID] [TARGET PROJECT ID]${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}build${HAIR}      Builds all of the docker containers for the given PROJECT ID.${SPACER}"
     printf "${INDENT}${INDENT}           Usage: ${BOLD}og docker build${HAIR} [PROJECT ID]${SPACER}"
     printf "${INDENT}${INDENT}${BOLD}[PROJECT ID] install [container]${HAIR}           Executes the installaion script for the given PROJECT ID and container.${SPACER}"
@@ -102,6 +106,14 @@ function output_docker_destroy_man {
 
     printf "${EOL}"
     printf "${INDENT}Usage: ${BOLD}og docker destroy${HAIR} [PROJECT ID]${EOL}"
+    printf "${EOL}"
+
+}
+
+function output_docker_clone_man {
+
+    printf "${EOL}"
+    printf "${INDENT}Usage: ${BOLD}og docker clone${HAIR} [SOURCE PROJECT ID] [TARGET PROJECT ID]${EOL}"
     printf "${EOL}"
 
 }
@@ -162,6 +174,29 @@ function does_project_directory_exist {
 
         echo "true"
         return 0
+
+    fi
+
+    echo "false"
+    return 0
+
+}
+
+function is_project_directory_nested {
+
+    if [[ -d "$HOME/.docker-og.d" ]]; then
+
+        for FILE in ${HOME}/.docker-og.d/*; do
+
+            projectDir="$(head -n 1 $FILE)"
+            if [[ "$(pwd)" == *"${projectDir}"* ]]; then
+
+                echo $projectDir
+                return 0
+
+            fi
+
+        done
 
     fi
 
@@ -1008,16 +1043,16 @@ function project_info {
                 printf "${INDENT}${INDENT}Solr:             ${BOLD}${solrProjectURI}${HAIR}${EOL}"
                 printf "${EOL}"
                 printf "${INDENT}Database Addresses:${EOL}"
-                printf "${INDENT}${INDENT}Drupal:           ${BOLD}${databaseBaseURI}og_drupal_local__${PROJECT_ID}${HAIR}${EOL}"
-                printf "${INDENT}${INDENT}Drupal Test:      ${BOLD}${databaseBaseURI}og_drupal_local__${PROJECT_ID}__test${HAIR}${EOL}"
-                printf "${INDENT}${INDENT}Portal:           ${BOLD}${databaseBaseURI}og_ckan_portal_local__${PROJECT_ID}${HAIR}${EOL}"
-                printf "${INDENT}${INDENT}Portal Test:      ${BOLD}${databaseBaseURI}og_ckan_portal_local__${PROJECT_ID}__test${HAIR}${EOL}"
-                printf "${INDENT}${INDENT}Portal DS:        ${BOLD}${databaseBaseURI}og_ckan_portal_ds_local__${PROJECT_ID}${HAIR}${EOL}"
-                printf "${INDENT}${INDENT}Portal DS Test:   ${BOLD}${databaseBaseURI}og_ckan_portal_ds_local__${PROJECT_ID}__test${HAIR}${EOL}"
-                printf "${INDENT}${INDENT}Registry:         ${BOLD}${databaseBaseURI}og_ckan_registry_local__${PROJECT_ID}${HAIR}${EOL}"
-                printf "${INDENT}${INDENT}Registry Test:    ${BOLD}${databaseBaseURI}og_ckan_registry_local__${PROJECT_ID}__test${HAIR}${EOL}"
-                printf "${INDENT}${INDENT}Registry DS:      ${BOLD}${databaseBaseURI}og_ckan_registry_ds_local__${PROJECT_ID}${HAIR}${EOL}"
-                printf "${INDENT}${INDENT}Registry DS Test: ${BOLD}${databaseBaseURI}og_ckan_registry_ds_local__${PROJECT_ID}__test${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Drupal:           ${BOLD}${databaseBaseURI}og_drupal_local${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Drupal Test:      ${BOLD}${databaseBaseURI}og_drupal_local__test${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Portal:           ${BOLD}${databaseBaseURI}og_ckan_portal_local${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Portal Test:      ${BOLD}${databaseBaseURI}og_ckan_portal_local__test${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Portal DS:        ${BOLD}${databaseBaseURI}og_ckan_portal_ds_local${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Portal DS Test:   ${BOLD}${databaseBaseURI}og_ckan_portal_ds_local__test${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Registry:         ${BOLD}${databaseBaseURI}og_ckan_registry_local${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Registry Test:    ${BOLD}${databaseBaseURI}og_ckan_registry_local__test${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Registry DS:      ${BOLD}${databaseBaseURI}og_ckan_registry_ds_local${HAIR}${EOL}"
+                printf "${INDENT}${INDENT}Registry DS Test: ${BOLD}${databaseBaseURI}og_ckan_registry_ds_local__test${HAIR}${EOL}"
                 printf "${EOL}"
 
             fi
@@ -1029,6 +1064,14 @@ function project_info {
 }
 
 function docker_init_command {
+
+    isCloning='false'
+
+    if [[ $1 == 'clone' ]]; then
+
+        isCloning='true'
+
+    fi
 
     if [[ $3 ]]; then
 
@@ -1052,134 +1095,148 @@ function docker_init_command {
 
             if [[ $(does_project_directory_exist $3) == "false" ]]; then
 
-                projectID=$3
-                confirmProjectCreation='false'
+                if [[ $(is_project_directory_nested $3) == "false" ]]; then
 
-                printf "${EOL}"
-                printf "${Cyan}${INDENT}Are you sure you want to create a new Docker OG project at ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} with the ID of ${ITALIC}${BOLD}${projectID}${HAIR}${Cyan}?${NC}${EOL}"
-                read -r -p $'\033[0;36m    [y/N]: \033[0;0m' response
-
-                if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-
-                    confirmProjectCreation='true'
-
-                fi
-
-                if [[ $confirmProjectCreation == "true" ]]; then
-
-                    # create hosts file for the project ID
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Generating host file ${ITALIC}${BOLD}/etc/hosts.d/og.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${EOL}"
-                    generate_project_hosts_file
-
-                    # create docker networks for the project ID
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Creating docker network for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    docker network inspect og-local-network >/dev/null 2>&1 || docker network create og-local-network | sed 's/^/    /g'
-                    docker network create og-local-network--$projectID | sed 's/^/    /g'
-                    if [[ $? -eq 0 ]]; then
-                        printf "${Green}${INDENT}Create docker network og-local-network--$projectID: OK${NC}${EOL}"
-                    else
-                        printf "${Red}${INDENT}Create docker network og-local-network--$projectID: FAIL${NC}${EOL}"
-                    fi
-
-                    # create directory for the project ID
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Creating project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    mkdir $(pwd)/$projectID
-                    if [[ $? -eq 0 ]]; then
-                        printf "${Green}${INDENT}Create project directory $(pwd)/${projectID}: OK${NC}${EOL}"
-                    else
-                        printf "${Red}${INDENT}Create project directory $(pwd)/${projectID}: FAIL${NC}${EOL}"
-                    fi
-
-                    # add absolute directory path to registry file for the project ID
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Creating project registry file ${ITALIC}${BOLD}~/.docker-og.d/${projectID}.conf${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    generate_project_registry_file $3
-
-                    # pull docker-og repo into project directory
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Cloning ${REPO_URI} into project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    git clone https://github.com/open-data/docker-og.git $(pwd)/$projectID 2>&1 | sed 's/^/    /g'
-                    if [[ $? -eq 0 ]]; then
-                        printf "${Green}${INDENT}Clone ${REPO_URI} into $(pwd)/${projectID}: OK${NC}${EOL}"
-                    else
-                        printf "${Red}${INDENT}Clone ${REPO_URI} into $(pwd)/${projectID}: FAIL${NC}${EOL}"
-                    fi
-                    
-                    # create .env file and put project ID into it
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Creating ${ITALIC}${BOLD}.env${HAIR}${Cyan} file for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    touch $(pwd)/$projectID/.env
-                    if [[ $? -eq 0 ]]; then
-                        printf "${Green}${INDENT}Create project environment file $(pwd)/$projectID/.env: OK${NC}${EOL}"
-                    else
-                        printf "${Red}${INDENT}Create project environment file $(pwd)/$projectID/.env: FAIL${NC}${EOL}"
-                    fi
-                    echo -e "PROJECT_ID=$projectID\nUSER_ID=$(id -u)\nGROUP_ID=$(id -g)\n" > $(pwd)/$projectID/.env
-
-                    # renting some port numbers from the pool
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Renting port numbers for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    rent_port_number $3
-
-                    # renting an ip octet from the pool
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Renting ip octet for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    rent_ip_octet $3
-
-                    # create .env.conf file and put project ID into it
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Creating ${ITALIC}${BOLD}.env.conf${HAIR}${Cyan} nginx file for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    touch $(pwd)/$projectID/docker/config/nginx/conf/.env.conf
-                    if [[ $? -eq 0 ]]; then
-                        printf "${Green}${INDENT}Create project environment file $(pwd)/$projectID/docker/config/nginx/conf/.env.conf: OK${NC}${EOL}"
-                    else
-                        printf "${Red}${INDENT}Create project environment file $(pwd)/$projectID/docker/config/nginx/conf/.env.conf: FAIL${NC}${EOL}"
-                    fi
-                    echo "set \$projectID \"$projectID\";" > $(pwd)/$projectID/docker/config/nginx/conf/.env.conf
-                    
-                    # run the pre-build.sh script
-                    if [[ -f "$(pwd)/$projectID/pre-build.sh" ]]; then
-                        printf "${EOL}"
-                        printf "${Cyan}${INDENT}Running ${ITALIC}${BOLD}pre-build.sh${HAIR}${Cyan} script for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                        chmod 775 $(pwd)/$projectID/pre-build.sh
-                        $(pwd)/$projectID/pre-build.sh $projectID no-interaction $(pwd)/$projectID
-                    fi
-
-                    # add execution to installation script
-                    if [[ -f "$(pwd)/$projectID/install-local.sh" ]]; then
-                        chmod 775 $(pwd)/$projectID/install-local.sh
-                    fi
-                    
-                    printf "${Cyan}${INDENT}Project ${ITALIC}${BOLD}$3${HAIR}${Cyan} successfully initiated in the directory $(pwd)/$projectID: ${NC}${EOL}"
-
-                    confirmBuildContainers='false'
+                    projectID=$3
+                    confirmProjectCreation='false'
 
                     printf "${EOL}"
-                    printf "${Cyan}${INDENT}Did you want to build the docker containers for project ${ITALIC}${BOLD}$projectID${HAIR}${Cyan}?${NC}${EOL}"
+                    printf "${Cyan}${INDENT}Are you sure you want to create a new Docker OG project at ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} with the ID of ${ITALIC}${BOLD}${projectID}${HAIR}${Cyan}?${NC}${EOL}"
                     read -r -p $'\033[0;36m    [y/N]: \033[0;0m' response
 
                     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
 
-                        confirmBuildContainers='true'
+                        confirmProjectCreation='true'
 
                     fi
 
-                    if [[ $confirmBuildContainers == "true" ]]; then
+                    if [[ $confirmProjectCreation == "true" ]]; then
 
-                        og docker build $projectID
+                        # create hosts file for the project ID
+                        printf "${EOL}"
+                        printf "${Cyan}${INDENT}Generating host file ${ITALIC}${BOLD}/etc/hosts.d/og.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${EOL}"
+                        generate_project_hosts_file
+
+                        # create docker networks for the project ID
+                        printf "${EOL}"
+                        printf "${Cyan}${INDENT}Creating docker network for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                        docker network inspect og-local-network >/dev/null 2>&1 || docker network create og-local-network | sed 's/^/    /g'
+                        docker network create og-local-network--$projectID | sed 's/^/    /g'
+                        if [[ $? -eq 0 ]]; then
+                            printf "${Green}${INDENT}Create docker network og-local-network--$projectID: OK${NC}${EOL}"
+                        else
+                            printf "${Red}${INDENT}Create docker network og-local-network--$projectID: FAIL${NC}${EOL}"
+                        fi
+
+                        # create directory for the project ID
+                        printf "${EOL}"
+                        printf "${Cyan}${INDENT}Creating project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                        mkdir $(pwd)/$projectID
+                        if [[ $? -eq 0 ]]; then
+                            printf "${Green}${INDENT}Create project directory $(pwd)/${projectID}: OK${NC}${EOL}"
+                        else
+                            printf "${Red}${INDENT}Create project directory $(pwd)/${projectID}: FAIL${NC}${EOL}"
+                        fi
+
+                        # add absolute directory path to registry file for the project ID
+                        printf "${EOL}"
+                        printf "${Cyan}${INDENT}Creating project registry file ${ITALIC}${BOLD}~/.docker-og.d/${projectID}.conf${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                        generate_project_registry_file $3
+
+                        # pull docker-og repo into project directory
+                        printf "${EOL}"
+                        printf "${Cyan}${INDENT}Cloning ${REPO_URI} into project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                        git clone https://github.com/open-data/docker-og.git $(pwd)/$projectID 2>&1 | sed 's/^/    /g'
+                        if [[ $? -eq 0 ]]; then
+                            printf "${Green}${INDENT}Clone ${REPO_URI} into $(pwd)/${projectID}: OK${NC}${EOL}"
+                        else
+                            printf "${Red}${INDENT}Clone ${REPO_URI} into $(pwd)/${projectID}: FAIL${NC}${EOL}"
+                        fi
+                        
+                        # create .env file and put project ID into it
+                        printf "${EOL}"
+                        printf "${Cyan}${INDENT}Creating ${ITALIC}${BOLD}.env${HAIR}${Cyan} file for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                        touch $(pwd)/$projectID/.env
+                        if [[ $? -eq 0 ]]; then
+                            printf "${Green}${INDENT}Create project environment file $(pwd)/$projectID/.env: OK${NC}${EOL}"
+                        else
+                            printf "${Red}${INDENT}Create project environment file $(pwd)/$projectID/.env: FAIL${NC}${EOL}"
+                        fi
+                        echo -e "PROJECT_ID=$projectID\nUSER_ID=$(id -u)\nGROUP_ID=$(id -g)\n" > $(pwd)/$projectID/.env
+
+                        # renting some port numbers from the pool
+                        printf "${EOL}"
+                        printf "${Cyan}${INDENT}Renting port numbers for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                        rent_port_number $3
+
+                        # renting an ip octet from the pool
+                        printf "${EOL}"
+                        printf "${Cyan}${INDENT}Renting ip octet for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                        rent_ip_octet $3
+
+                        # create .env.conf file and put project ID into it
+                        printf "${EOL}"
+                        printf "${Cyan}${INDENT}Creating ${ITALIC}${BOLD}.env.conf${HAIR}${Cyan} nginx file for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                        touch $(pwd)/$projectID/docker/config/nginx/conf/.env.conf
+                        if [[ $? -eq 0 ]]; then
+                            printf "${Green}${INDENT}Create project environment file $(pwd)/$projectID/docker/config/nginx/conf/.env.conf: OK${NC}${EOL}"
+                        else
+                            printf "${Red}${INDENT}Create project environment file $(pwd)/$projectID/docker/config/nginx/conf/.env.conf: FAIL${NC}${EOL}"
+                        fi
+                        echo "set \$projectID \"$projectID\";" > $(pwd)/$projectID/docker/config/nginx/conf/.env.conf
+                        
+                        # run the pre-build.sh script
+                        if [[ -f "$(pwd)/$projectID/pre-build.sh" ]]; then
+                            printf "${EOL}"
+                            printf "${Cyan}${INDENT}Running ${ITALIC}${BOLD}pre-build.sh${HAIR}${Cyan} script for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
+                            chmod 775 $(pwd)/$projectID/pre-build.sh
+                            $(pwd)/$projectID/pre-build.sh $projectID no-interaction $(pwd)/$projectID
+                        fi
+
+                        # add execution to installation script
+                        if [[ -f "$(pwd)/$projectID/install-local.sh" ]]; then
+                            chmod 775 $(pwd)/$projectID/install-local.sh
+                        fi
+                        
+                        printf "${Cyan}${INDENT}Project ${ITALIC}${BOLD}$3${HAIR}${Cyan} successfully initiated in the directory $(pwd)/$projectID: ${NC}${EOL}"
+
+                        if [[ $isCloning == 'false' ]]; then
+
+                            confirmBuildContainers='false'
+
+                            printf "${EOL}"
+                            printf "${Cyan}${INDENT}Did you want to build the docker containers for project ${ITALIC}${BOLD}$projectID${HAIR}${Cyan}?${NC}${EOL}"
+                            read -r -p $'\033[0;36m    [y/N]: \033[0;0m' response
+
+                            if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+
+                                confirmBuildContainers='true'
+
+                            fi
+
+                            if [[ $confirmBuildContainers == "true" ]]; then
+
+                                og docker build $projectID
+
+                            fi
+
+                            printf "${Cyan}${INDENT}Run ${ITALIC}${BOLD}og docker $projectID install [drupal|django|ckan]${HAIR}${Cyan} to install the apps into their containers.${NC}${EOL}"
+                            printf "${EOL}"
+
+                        fi
+
+                    else
+                        
+                        printf "${EOL}"
+                        printf "${Yellow}${INDENT}Abandoning docker project creation with ID: ${ITALIC}${BOLD}$3${HAIR}${Yellow}${BOLD}${NC}${SPACER}"
 
                     fi
-
-                    printf "${Cyan}${INDENT}Run ${ITALIC}${BOLD}og docker $projectID install [drupal|django|ckan]${HAIR}${Cyan} to install the apps into their containers.${NC}${EOL}"
-                    printf "${EOL}"
 
                 else
-                    
+                        
+                    nestedDir=$(is_project_directory_nested $3)
                     printf "${EOL}"
-                    printf "${Yellow}${INDENT}Abandoning docker project creation with ID: ${ITALIC}${BOLD}$3${HAIR}${Yellow}${BOLD}${NC}${SPACER}"
+                    printf "${Yellow}${INDENT}Nested projects are not supported. There is already a project in the directory tree: ${ITALIC}${BOLD}$nestedDir${HAIR}${Yellow}${BOLD}${NC}${SPACER}"
 
                 fi
         
@@ -1303,6 +1360,104 @@ function docker_destroy_command {
         printf "${EOL}"
         printf "${Yellow}${INDENT}Please supply a PROJECT ID${NC}${EOL}"
         output_docker_destroy_man
+
+    fi
+
+}
+
+function docker_clone_command {
+
+    if [[ $3 ]]; then
+
+        if [[ $(does_docker_project_exist $3) == "true"  ]]; then
+
+            if [[ $(get_working_directory_from_project_id $3) != "false"  ]]; then
+
+                if [[ $(does_docker_project_exist $4) == "true"  ]]; then
+
+                    if [[ $(get_working_directory_from_project_id $4) != "false"  ]]; then
+
+                        sourceProjectID=$3
+                        sourceProjectDir="$(head -n 1 $HOME/.docker-og.d/$3.conf)"
+                        targetProjectID=$4
+                        targetProjectDir="$(head -n 1 $HOME/.docker-og.d/$4.conf)"
+                        confirmProjectCloning='false'
+
+                        printf "${EOL}"
+                        printf "${Cyan}${INDENT}Are you sure you want to overwrite the Docker OG project at ${ITALIC}${BOLD}${targetProjectDir}${HAIR}${Cyan} with the Docker OG project at ${ITALIC}${BOLD}${sourceProjectDir}${HAIR}${Cyan}? [${sourceProjectID} --> ${targetProjectID}]${NC}${EOL}"
+                        read -r -p $'\033[0;36m    [y/N]: \033[0;0m' response
+
+                        if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+
+                            confirmProjectCloning='true'
+
+                        fi
+
+                        if [[ $confirmProjectCloning == "true" ]]; then
+
+                            printf "${EOL}"
+                            printf "${Cyan}${INDENT}Copying ${ITALIC}${BOLD}${sourceProjectID}${HAIR}${Cyan} to ${ITALIC}${BOLD}${targetProjectID}${HAIR}${Cyan}...${NC}${EOL}"
+
+                            cd $sourceProjectDir
+                            rsync --progress --archive --verbose --delete --recursive --perms --exclude=/.env --exclude=/_config --exclude=/docker --exclude=/backup/local_configs . $targetProjectDir | sed 's/^/    /g'
+
+                        else
+
+                            printf "${EOL}"
+                            printf "${Yellow}${INDENT}Abandoning docker project cloning: ${ITALIC}${BOLD}[${sourceProjectID} --> ${targetProjectID}]${HAIR}${Yellow}${BOLD}${NC}${SPACER}"
+
+                        fi
+
+                    else
+
+                        printf "${EOL}"
+                        printf "${Yellow}${INDENT}Project directory for ${ITALIC}${BOLD}$4${HAIR}${Yellow}${BOLD} does not exist.${NC}${SPACER}"
+
+                    fi
+
+                else
+
+                    printf "${EOL}"
+                    printf "${INDENT}${Cyan}Project ${ITALIC}${BOLD}$4${HAIR}${Cyan} does not exist...creating new Docker OG project.${NC}${EOL}"
+                    docker_init_command "${@:2}"
+
+                    sourceProjectID=$3
+                    sourceProjectDir="$(head -n 1 $HOME/.docker-og.d/$3.conf)"
+
+                    if [[ -f "$HOME/.docker-og.d/$4.conf" ]]; then
+
+                        targetProjectID=$4
+                        targetProjectDir="$(head -n 1 $HOME/.docker-og.d/$4.conf)"
+
+                        printf "${EOL}"
+                        printf "${Cyan}${INDENT}Copying ${ITALIC}${BOLD}${sourceProjectID}${HAIR}${Cyan} to ${ITALIC}${BOLD}${targetProjectID}${HAIR}${Cyan}...${NC}${EOL}"
+
+                        cd $sourceProjectDir
+                        rsync --progress --archive --verbose --delete --recursive --perms --exclude=/.env --exclude=/_config --exclude=/docker --exclude=/backup/local_configs . $targetProjectDir | sed 's/^/    /g'
+
+                    fi
+
+                fi
+
+            else
+
+                printf "${EOL}"
+                printf "${Yellow}${INDENT}Project directory for ${ITALIC}${BOLD}$3${HAIR}${Yellow}${BOLD} does not exist.${NC}${SPACER}"
+
+            fi
+
+        else
+
+            printf "${EOL}"
+            printf "${Yellow}${INDENT}Docker project with ID ${ITALIC}${BOLD}$3${HAIR}${Yellow}${BOLD} does not exist.${NC}${SPACER}"
+
+        fi
+
+    else
+
+        printf "${EOL}"
+        printf "${Yellow}${INDENT}Please supply a PROJECT ID${NC}${EOL}"
+        output_docker_clone_man
 
     fi
 
@@ -1526,6 +1681,10 @@ function docker_command  {
                         elif [[ $2 == "destroy" ]]; then
 
                             docker_destroy_command "$@"
+
+                        elif [[ $2 == "clone" ]]; then
+
+                            docker_clone_command "$@"
 
                         elif [[ $2 == "boot" ]]; then
 
