@@ -18,13 +18,17 @@ _ogautocomplete()
 
     if [[ -d "${HOME}/.docker-og.d" ]]; then
 
-        for FILE in ${HOME}/.docker-og.d/*; do
+        if [[ ! "$(find ${HOME}/.docker-og.d -empty)" ]]; then
+        
+            for FILE in ${HOME}/.docker-og.d/*; do
 
-            fileName="$(basename -- "$FILE")"
-            dockerArgs="$dockerArgs ${fileName%.*}"
-            dockerProjects="$dockerProjects ${fileName%.*}"
+                fileName="$(basename -- "$FILE")"
+                dockerArgs="$dockerArgs ${fileName%.*}"
+                dockerProjects="$dockerProjects ${fileName%.*}"
 
-        done
+            done
+
+        fi
 
     fi
     

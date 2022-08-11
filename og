@@ -186,17 +186,21 @@ function is_project_directory_nested {
 
     if [[ -d "$HOME/.docker-og.d" ]]; then
 
-        for FILE in ${HOME}/.docker-og.d/*; do
+        if [[ ! "$(find ${HOME}/.docker-og.d -empty)" ]]; then
 
-            projectDir="$(head -n 1 $FILE)"
-            if [[ "$(pwd)" == *"${projectDir}"* ]]; then
+            for FILE in ${HOME}/.docker-og.d/*; do
 
-                echo $projectDir
-                return 0
+                projectDir="$(head -n 1 $FILE)"
+                if [[ "$(pwd)" == *"${projectDir}"* ]]; then
 
-            fi
+                    echo $projectDir
+                    return 0
 
-        done
+                fi
+
+            done
+
+        fi
 
     fi
 
