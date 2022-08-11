@@ -1490,7 +1490,7 @@ function docker_command  {
     if [[ -x "$(command -v docker)" ]]; then
 
         # Gets the correct docker compose command (docker compose being the newest and docker-compose being older)
-        if [[ "$(docker compose version)" ]]; then
+        if [[ "$(docker --help | grep compose)" ]]; then
 
             dockerComposeCommand='docker compose'
 
