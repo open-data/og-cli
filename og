@@ -1048,7 +1048,7 @@ function project_info {
                 printf "${EOL}"
                 printf "${INDENT}Project ID:           ${BOLD}${PROJECT_ID}${HAIR}${SPACER}"
                 printf "${INDENT}Working Directory:    ${BOLD}${dir}${HAIR}${SPACER}"
-                printf "${INDENT}Docker Network:       ${BOLD}172.25.${OCTET}.0/16${HAIR}${SPACER}"
+                printf "${INDENT}Docker Network:       ${BOLD}172.25.${OCTET}.0/24${HAIR}${SPACER}"
                 printf "${INDENT}Web Port:             ${BOLD}${PORT}${HAIR}${SPACER}"
                 printf "${INDENT}Database Port:        ${BOLD}${DBPORT}${HAIR}${SPACER}"
                 printf "${INDENT}Web Addresses:${EOL}"
