@@ -158,6 +158,17 @@ function does_docker_project_exist {
 
     if [[ $dockerProjectNotExist == "true" ]]; then
 
+        if [[ -d "$HOME/.docker-og.d" ]]; then
+
+            if [[ -f "$HOME/.docker-og.d/$1.conf" ]]; then
+
+                echo "true"
+                return 0
+
+            fi
+
+        fi
+
         echo "false"
         return 0
 
@@ -1037,7 +1048,7 @@ function project_info {
                 printf "${EOL}"
                 printf "${INDENT}Project ID:           ${BOLD}${PROJECT_ID}${HAIR}${SPACER}"
                 printf "${INDENT}Working Directory:    ${BOLD}${dir}${HAIR}${SPACER}"
-                printf "${INDENT}Docker Network:       ${BOLD}${OCTET}.0.0.0/16${HAIR}${SPACER}"
+                printf "${INDENT}Docker Network:       ${BOLD}172.25.${OCTET}.0/16${HAIR}${SPACER}"
                 printf "${INDENT}Web Port:             ${BOLD}${PORT}${HAIR}${SPACER}"
                 printf "${INDENT}Database Port:        ${BOLD}${DBPORT}${HAIR}${SPACER}"
                 printf "${INDENT}Web Addresses:${EOL}"
@@ -1511,7 +1522,7 @@ function docker_build_command {
 function attempt_docker_compose_commands {
 
     if [[ $2 ]]; then
-
+        
         if [[ $(does_docker_project_exist $2) == "true"  ]]; then
 
             if [[ $(get_working_directory_from_project_id $2) != "false"  ]]; then
