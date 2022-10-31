@@ -152,29 +152,18 @@ function outpur_docker_git_man {
 
 function does_docker_project_exist {
 
-    dockerProjectNotExist='false'
+    if [[ -d "$HOME/.docker-og.d" ]]; then
 
-    docker network inspect og-local-network--$1 >/dev/null 2>&1 || dockerProjectNotExist='true'
+        if [[ -f "$HOME/.docker-og.d/$1.conf" ]]; then
 
-    if [[ $dockerProjectNotExist == "true" ]]; then
-
-        if [[ -d "$HOME/.docker-og.d" ]]; then
-
-            if [[ -f "$HOME/.docker-og.d/$1.conf" ]]; then
-
-                echo "true"
-                return 0
-
-            fi
+            echo "true"
+            return 0
 
         fi
 
-        echo "false"
-        return 0
-
     fi
 
-    echo "true"
+    echo "false"
     return 0
 
 }
@@ -1132,17 +1121,6 @@ function docker_init_command {
                         printf "${Cyan}${INDENT}Generating host file ${ITALIC}${BOLD}/etc/hosts.d/og.conf${HAIR}${Cyan}. Maybe prompt for admin password...${NC}${EOL}"
                         generate_project_hosts_file
 
-                        # create docker networks for the project ID
-                        printf "${EOL}"
-                        printf "${Cyan}${INDENT}Creating docker network for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                        docker network inspect og-local-network >/dev/null 2>&1 || docker network create og-local-network | sed 's/^/    /g'
-                        docker network create og-local-network--$projectID | sed 's/^/    /g'
-                        if [[ $? -eq 0 ]]; then
-                            printf "${Green}${INDENT}Create docker network og-local-network--$projectID: OK${NC}${EOL}"
-                        else
-                            printf "${Red}${INDENT}Create docker network og-local-network--$projectID: FAIL${NC}${EOL}"
-                        fi
-
                         # create directory for the project ID
                         printf "${EOL}"
                         printf "${Cyan}${INDENT}Creating project directory ${ITALIC}${BOLD}$(pwd)/${projectID}${HAIR}${Cyan} for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
@@ -1302,16 +1280,6 @@ function docker_destroy_command {
                 fi
 
                 if [[ $confirmProjectDeletion == "true" ]]; then
-
-                    # delete docker networks for the project ID
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Removing docker network for project ID: ${ITALIC}${BOLD}$3${HAIR}${Cyan}${NC}${EOL}"
-                    docker network rm og-local-network--$projectID | sed 's/^/    /g'
-                    if [[ $? -eq 0 ]]; then
-                        printf "${Green}${INDENT}Delete docker network og-local-network--$projectID: OK${NC}${EOL}"
-                    else
-                        printf "${Red}${INDENT}Delete docker network og-local-network--$projectID: FAIL${NC}${EOL}"
-                    fi
 
                     # delete docker images for the project ID
                     printf "${EOL}"
