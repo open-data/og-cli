@@ -26,7 +26,7 @@ PRE_BUILD_URI='\e]8;;https://github.com/open-data/docker-og#prebuild\e\\configur
 projectID=''
 projectDir='false'
 dockerComposeCommand='docker compose'
-validRepos="opengov og gcweb_bootstrap ogc_search ckan ckanapi ckanext-canada ckanext-cloudstorage ckanext-dcat ckanext-extendedactivity ckanext-extractor ckanext-fluent ckanext-recombinant ckanext-scheming ckanext-security ckanext-validation ckanext-xloader ckantoolkit goodtables ckanext-wet-boew"
+validRepos="opengov og gcweb_bootstrap oc_search oc_searches solrclient ckan ckanapi ckanext-az-keyvault ckanext-canada ckanext-citeproc ckanext-cloudstorage ckanext-dcat ckanext-dsaudit ckanext-excelforms ckanext-fluent ckanext-gcnotify ckanext-openapiview ckanext-power-bi ckanext-recombinant ckanext-scheming ckanext-security ckanext-validation ckanext-xloader frictionless-py"
 
 function output_man {
 
@@ -504,13 +504,6 @@ function does_local_git_repo_exist {
 
     baseDir=$1
     repo=$2
-    ckanInstall="registry"
-
-    if [[ "$3" ]]; then
-
-        ckanInstall=$3
-
-    fi
 
     case $repo in
 
@@ -544,9 +537,29 @@ function does_local_git_repo_exist {
             fi
             ;;
 
-        ("ogc_search")
-            if [[ -d $baseDir/django/src/ogc-search/ogc_search ]]; then
-                echo "$baseDir/django/src/ogc-search"
+        ("oc_search")
+            if [[ -d $baseDir/django/src/oc_search/oc_search ]]; then
+                echo "$baseDir/django/src/oc_search"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("oc_searches")
+            if [[ -d $baseDir/django/src/oc_searches/data ]]; then
+                echo "$baseDir/django/src/oc_searches"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("solrclient")
+            if [[ -d $baseDir/django/src/solrclient/SolrClient ]]; then
+                echo "$baseDir/django/src/solrclient"
                 return 0
             else
                 echo "false"
@@ -555,8 +568,8 @@ function does_local_git_repo_exist {
             ;;
 
         ("ckan")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckan/ckan ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckan"
+            if [[ -d $baseDir/ckan/src/ckan/ckan ]]; then
+                echo "$baseDir/ckan/src/ckan"
                 return 0
             else
                 echo "false"
@@ -565,8 +578,8 @@ function does_local_git_repo_exist {
             ;;
 
         ("ckanapi")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanapi/ckanapi ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckanapi"
+            if [[ -d $baseDir/ckan/src/ckanapi/ckanapi ]]; then
+                echo "$baseDir/ckan/src/ckanapi"
                 return 0
             else
                 echo "false"
@@ -575,8 +588,28 @@ function does_local_git_repo_exist {
             ;;
 
         ("ckanext-canada")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-canada/ckanext ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckanext-canada"
+            if [[ -d $baseDir/ckan/src/ckanext-canada/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-canada"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanext-az-keyvault")
+            if [[ -d $baseDir/ckan/src/ckanext-az-keyvault/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-az-keyvault"
+                return 0
+            else
+                echo "false"
+                return 0
+            fi
+            ;;
+
+        ("ckanext-citeproc")
+            if [[ -d $baseDir/ckan/src/ckanext-citeproc/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-citeproc"
                 return 0
             else
                 echo "false"
@@ -585,8 +618,8 @@ function does_local_git_repo_exist {
             ;;
 
         ("ckanext-cloudstorage")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-cloudstorage/ckanext ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckanext-cloudstorage"
+            if [[ -d $baseDir/ckan/src/ckanext-cloudstorage/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-cloudstorage"
                 return 0
             else
                 echo "false"
@@ -595,8 +628,8 @@ function does_local_git_repo_exist {
             ;;
 
         ("ckanext-dcat")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-dcat/ckanext ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckanext-dcat"
+            if [[ -d $baseDir/ckan/src/ckanext-dcat/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-dcat"
                 return 0
             else
                 echo "false"
@@ -604,9 +637,9 @@ function does_local_git_repo_exist {
             fi
             ;;
 
-        ("ckanext-extendedactivity")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-extendedactivity/ckanext ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckanext-extendedactivity"
+        ("ckanext-excelforms")
+            if [[ -d $baseDir/ckan/src/ckanext-excelforms/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-excelforms"
                 return 0
             else
                 echo "false"
@@ -614,9 +647,9 @@ function does_local_git_repo_exist {
             fi
             ;;
 
-        ("ckanext-extractor")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-extractor/ckanext ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckanext-extractor"
+        ("ckanext-dsaudit")
+            if [[ -d $baseDir/ckan/src/ckanext-dsaudit/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-dsaudit"
                 return 0
             else
                 echo "false"
@@ -625,8 +658,8 @@ function does_local_git_repo_exist {
             ;;
 
         ("ckanext-fluent")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-fluent/ckanext ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckanext-fluent"
+            if [[ -d $baseDir/ckan/src/ckanext-fluent/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-fluent"
                 return 0
             else
                 echo "false"
@@ -635,8 +668,8 @@ function does_local_git_repo_exist {
             ;;
 
         ("ckanext-recombinant")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-recombinant/ckanext ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckanext-recombinant"
+            if [[ -d $baseDir/ckan/src/ckanext-recombinant/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-recombinant"
                 return 0
             else
                 echo "false"
@@ -645,8 +678,8 @@ function does_local_git_repo_exist {
             ;;
 
         ("ckanext-scheming")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-scheming/ckanext ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckanext-scheming"
+            if [[ -d $baseDir/ckan/src/ckanext-scheming/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-scheming"
                 return 0
             else
                 echo "false"
@@ -655,8 +688,8 @@ function does_local_git_repo_exist {
             ;;
 
         ("ckanext-security")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-security/ckanext ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckanext-security"
+            if [[ -d $baseDir/ckan/src/ckanext-security/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-security"
                 return 0
             else
                 echo "false"
@@ -665,8 +698,8 @@ function does_local_git_repo_exist {
             ;;
 
         ("ckanext-validation")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-validation/ckanext ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckanext-validation"
+            if [[ -d $baseDir/ckan/src/ckanext-validation/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-validation"
                 return 0
             else
                 echo "false"
@@ -675,8 +708,8 @@ function does_local_git_repo_exist {
             ;;
 
         ("ckanext-xloader")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-xloader/ckanext ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckanext-xloader"
+            if [[ -d $baseDir/ckan/src/ckanext-xloader/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-xloader"
                 return 0
             else
                 echo "false"
@@ -684,9 +717,9 @@ function does_local_git_repo_exist {
             fi
             ;;
 
-        ("ckantoolkit")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckantoolkit/ckantoolkit ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckantoolkit"
+        ("ckanext-power-bi")
+            if [[ -d $baseDir/ckan/src/ckanext-power-bi/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-power-bi"
                 return 0
             else
                 echo "false"
@@ -694,9 +727,9 @@ function does_local_git_repo_exist {
             fi
             ;;
 
-        ("goodtables")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/goodtables/goodtables ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/goodtables"
+        ("frictionless-py")
+            if [[ -d $baseDir/ckan/src/frictionless-py/frictionless ]]; then
+                echo "$baseDir/ckan/src/frictionless-py"
                 return 0
             else
                 echo "false"
@@ -704,9 +737,9 @@ function does_local_git_repo_exist {
             fi
             ;;
 
-        ("ckanext-wet-boew")
-            if [[ -d $baseDir/ckan/$ckanInstall/src/ckanext-wet-boew/ckanext ]]; then
-                echo "$baseDir/ckan/$ckanInstall/src/ckanext-wet-boew"
+        ("ckanext-openapiview")
+            if [[ -d $baseDir/ckan/src/ckanext-openapiview/ckanext ]]; then
+                echo "$baseDir/ckan/src/ckanext-openapiview"
                 return 0
             else
                 echo "false"
@@ -734,67 +767,24 @@ function execute_git_command {
         for i in "${repoArray[@]}"
             do
             :
-                if [[ $i == "opengov" || $i == "og" || $i == "gcweb_bootstrap" || $i == "ogc_search" ]]; then
-                    if [[ $(does_local_git_repo_exist $dir $i) != "false" ]]; then
-                        let gitCommandCount++
-                        localRepo="$(does_local_git_repo_exist $dir $i)"
-                        cd $localRepo
-                        localBranch="$(git rev-parse --abbrev-ref HEAD)"
-                        if [[ $command == "fetch" ]]; then
-                            printf "${EOL}"
-                            printf "${Cyan}${INDENT}Fetching ${i} (${localBranch})...${NC}${EOL}"
-                            git fetch
-                            if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
-                                git status
-                            else
-                                printf "${Cyan}${INDENT}No new commits found for ${i} (${localBranch})...${NC}${EOL}"
-                            fi
-                        elif [[ $command == "pull" ]]; then
-                            printf "${EOL}"
-                            printf "${Cyan}${INDENT}Pulling ${i} (${localBranch})...${NC}${EOL}"
-                            git pull
+                if [[ $(does_local_git_repo_exist $dir $i) != "false" ]]; then
+                    let gitCommandCount++
+                    localRepo="$(does_local_git_repo_exist $dir $i)"
+                    cd $localRepo
+                    localBranch="$(git rev-parse --abbrev-ref HEAD)"
+                    if [[ $command == "fetch" ]]; then
+                        printf "${EOL}"
+                        printf "${Cyan}${INDENT}Fetching ${i} (${localBranch})...${NC}${EOL}"
+                        git fetch
+                        if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
+                            git status
+                        else
+                            printf "${Cyan}${INDENT}No new commits found for ${i} (${localBranch})...${NC}${EOL}"
                         fi
-                    fi
-                else
-                    if [[ $(does_local_git_repo_exist $dir $i registry) != "false" ]]; then
-                        let gitCommandCount++
-                        localRepo="$(does_local_git_repo_exist $dir $i registry)"
-                        cd $localRepo
-                        localBranch="$(git rev-parse --abbrev-ref HEAD)"
-                        if [[ $command == "fetch" ]]; then
-                            printf "${EOL}"
-                            printf "${Cyan}${INDENT}Fetching ${i} (${localBranch}) (registry)...${NC}${EOL}"
-                            git fetch
-                            if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
-                                git status
-                            else
-                                printf "${Cyan}${INDENT}No new commits found for ${i} (${localBranch}) (registry)...${NC}${EOL}"
-                            fi
-                        elif [[ $command == "pull" ]]; then
-                            printf "${EOL}"
-                            printf "${Cyan}${INDENT}Pulling ${i} (${localBranch}) (registry)...${NC}${EOL}"
-                            git pull
-                        fi
-                    fi
-                    if [[ $(does_local_git_repo_exist $dir $i portal) != "false" ]]; then
-                        let gitCommandCount++
-                        localRepo="$(does_local_git_repo_exist $dir $i portal)"
-                        cd $localRepo
-                        localBranch="$(git rev-parse --abbrev-ref HEAD)"
-                        if [[ $command == "fetch" ]]; then
-                            printf "${EOL}"
-                            printf "${Cyan}${INDENT}Fetching ${i} (${localBranch}) (portal)...${NC}${EOL}"
-                            git fetch
-                            if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
-                                git status
-                            else
-                                printf "${Cyan}${INDENT}No new commits found for ${i} (${localBranch}) (portal)...${NC}${EOL}"
-                            fi
-                        elif [[ $command == "pull" ]]; then
-                            printf "${EOL}"
-                            printf "${Cyan}${INDENT}Pulling ${i} (${localBranch}) (portal)...${NC}${EOL}"
-                            git pull
-                        fi
+                    elif [[ $command == "pull" ]]; then
+                        printf "${EOL}"
+                        printf "${Cyan}${INDENT}Pulling ${i} (${localBranch})...${NC}${EOL}"
+                        git pull
                     fi
                 fi
             done
@@ -808,126 +798,42 @@ function execute_git_command {
 
     else
 
-        if [[ $repo == "opengov" || $repo == "og" || $repo == "gcweb_bootstrap" || $repo == "ogc_search" ]]; then
+        if [[ $(does_local_git_repo_exist $dir $repo) != "false" ]]; then
 
-            if [[ $(does_local_git_repo_exist $dir $repo) != "false" ]]; then
+            localRepo="$(does_local_git_repo_exist $dir $repo)"
+            cd $localRepo
+            localBranch="$(git rev-parse --abbrev-ref HEAD)"
 
-                localRepo="$(does_local_git_repo_exist $dir $repo)"
-                cd $localRepo
-                localBranch="$(git rev-parse --abbrev-ref HEAD)"
-
-                if [[ $command == "fetch" ]]; then
-
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Fetching ${repo} (${localBranch})...${NC}${EOL}"
-                    git fetch
-                    if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
-                        git status
-                    else
-                        printf "${Cyan}${INDENT}No new commits found for ${repo} (${localBranch})...${NC}${EOL}"
-                    fi
-
-                elif [[ $command == "pull" ]]; then
-
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Pulling ${repo} (${localBranch})...${NC}${EOL}"
-                    git pull
-
-                elif [[ $command == "exec" ]]; then
-
-                    gitCommand="${@:4}"
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Executing git ${gitCommand} for ${repo} (${localBranch})...${NC}${EOL}"
-                    git $gitCommand
-
-                fi
-
-            else
+            if [[ $command == "fetch" ]]; then
 
                 printf "${EOL}"
-                printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} repository does not exist locally for the project ${BOLD}${projectID}${HAIR}${Red}. Have you run the installation for that application?${HAIR}${NC}${EOL}"
+                printf "${Cyan}${INDENT}Fetching ${repo} (${localBranch})...${NC}${EOL}"
+                git fetch
+                if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
+                    git status
+                else
+                    printf "${Cyan}${INDENT}No new commits found for ${repo} (${localBranch})...${NC}${EOL}"
+                fi
+
+            elif [[ $command == "pull" ]]; then
+
+                printf "${EOL}"
+                printf "${Cyan}${INDENT}Pulling ${repo} (${localBranch})...${NC}${EOL}"
+                git pull
+
+            elif [[ $command == "exec" ]]; then
+
+                gitCommand="${@:4}"
+                printf "${EOL}"
+                printf "${Cyan}${INDENT}Executing git ${gitCommand} for ${repo} (${localBranch})...${NC}${EOL}"
+                git $gitCommand
 
             fi
 
         else
 
-            if [[ $(does_local_git_repo_exist $dir $repo registry) != "false" ]]; then
-
-                localRepo="$(does_local_git_repo_exist $dir $repo registry)"
-                cd $localRepo
-                localBranch="$(git rev-parse --abbrev-ref HEAD)"
-
-                if [[ $command == "fetch" ]]; then
-
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Fetching ${repo} (${localBranch}) (registry)...${NC}${EOL}"
-                    git fetch
-                    if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
-                        git status
-                    else
-                        printf "${Cyan}${INDENT}No new commits found for ${repo} (${localBranch}) (registry)...${NC}${EOL}"
-                    fi
-
-                elif [[ $command == "pull" ]]; then
-
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Pulling ${repo} (${localBranch}) (registry)...${NC}${EOL}"
-                    git pull
-
-                elif [[ $command == "exec" ]]; then
-
-                    gitCommand="${@:4}"
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Executing git ${gitCommand} for ${repo} (${localBranch}) (registry)...${NC}${EOL}"
-                    git $gitCommand
-
-                fi
-
-            else
-
-                printf "${EOL}"
-                printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} repository does not exist locally for the project ${BOLD}${projectID}${HAIR}${Red}. Have you run the installation for that application? (extra info: not found in CKAN registry)${HAIR}${NC}${EOL}"
-
-            fi
-
-            if [[ $(does_local_git_repo_exist $dir $repo portal) != "false" ]]; then
-
-                localRepo="$(does_local_git_repo_exist $dir $repo portal)"
-                cd $localRepo
-                localBranch="$(git rev-parse --abbrev-ref HEAD)"
-
-                if [[ $command == "fetch" ]]; then
-
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Fetching ${repo} (${localBranch}) (portal)...${NC}${EOL}"
-                    git fetch
-                    if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
-                        git status
-                    else
-                        printf "${Cyan}${INDENT}No new commits found for ${repo} (${localBranch}) (portal)...${NC}${EOL}"
-                    fi
-
-                elif [[ $command == "pull" ]]; then
-
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Pulling ${repo} (${localBranch}) (portal)...${NC}${EOL}"
-                    git pull
-
-                elif [[ $command == "exec" ]]; then
-
-                    gitCommand="${@:4}"
-                    printf "${EOL}"
-                    printf "${Cyan}${INDENT}Executing git ${gitCommand} for ${repo} (${localBranch}) (portal)...${NC}${EOL}"
-                    git $gitCommand
-
-                fi
-
-            else
-
-                printf "${EOL}"
-                printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} repository does not exist locally for the project ${BOLD}${projectID}${HAIR}${Red}. Have you run the installation for that application? (extra info: not found in CKAN portal)${HAIR}${NC}${EOL}"
-
-            fi
+            printf "${EOL}"
+            printf "${Red}${INDENT}${BOLD}${repo}${HAIR}${Red} repository does not exist locally for the project ${BOLD}${projectID}${HAIR}${Red}. Have you run the installation for that application?${HAIR}${NC}${EOL}"
 
         fi
 

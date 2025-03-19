@@ -12,9 +12,9 @@ _ogautocomplete()
     dockerArgs="boot init destroy clone build help"
     dockerProjects=""
     dockerProjectArgs="install info git"
-    appInstallArgs="drupal django ckan ckanapi"
+    appInstallArgs="drupal django ckan"
     gitArgs="fetch pull exec"
-    gitSubArgs="opengov og gcweb_bootstrap ogc_search ckan ckanapi ckanext-canada ckanext-cloudstorage ckanext-dcat ckanext-extendedactivity ckanext-extractor ckanext-fluent ckanext-recombinant ckanext-scheming ckanext-security ckanext-validation ckanext-xloader ckantoolkit goodtables ckanext-wet-boew"
+    gitSubArgs="opengov og gcweb_bootstrap oc_search oc_searches solrclient ckan ckanapi ckanext-az-keyvault ckanext-canada ckanext-citeproc ckanext-cloudstorage ckanext-dcat ckanext-dsaudit ckanext-excelforms ckanext-fluent ckanext-gcnotify ckanext-openapiview ckanext-power-bi ckanext-recombinant ckanext-scheming ckanext-security ckanext-validation ckanext-xloader frictionless-py"
 
     if [[ -d "${HOME}/.docker-og.d" ]]; then
 
